@@ -1,5 +1,7 @@
 'use strict';
 
+import sayHello from './src/hello';
+
 describe('Hello', function () {
 
     it('says hello', () => {

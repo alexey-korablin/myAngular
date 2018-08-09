@@ -1,13 +1,13 @@
 module.exports = (config) => {
     config.set({
-        frameworks: ['jasmine'],
+        frameworks: ['jasmine', 'browserify'],
         files: [
             'src/**/*.js',
             'test/**/*.spec.js'
         ],
         preprocessors: {
-            'src/**/*.js': ['jshint', 'babel'],
-            'test/**/*.spec.js': ['jshint', 'babel']
+            'src/**/*.js': ['jshint', 'browserify'], //'babel', 
+            'test/**/*.spec.js': ['jshint', 'browserify'] //'babel', 
         },
         browsers: ['ChromeNoSandboxHeadless'],
         customLaunchers: {
@@ -21,9 +21,13 @@ module.exports = (config) => {
               ]
             }
         },
+        browserify: {
+            debug: true,
+            transform: [['babelify', {'es6': true}]]
+        },
         babelPreprocessor: {
             options: {
-              presets: ['es2015'],
+              presets: ['es2015', 'env'],
             //   plugins: ['transform-class-properties'],
               sourceMap: 'inline'
             },
@@ -34,7 +38,8 @@ module.exports = (config) => {
               return file.originalPath;
             }
         },
-        logLevel: config.LOG_INFO,
+        // logLevel: config.LOG_INFO,
+        logLevel: config.LOG_DEBUG,
         concurrency: Infinity
     })
 }

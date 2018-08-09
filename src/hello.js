@@ -1,3 +1,3 @@
-function sayHello() {
+export default function sayHello() {
     return `Hello, world!`;
 }
