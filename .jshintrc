@@ -1,0 +1,16 @@
+{
+    "browser": true,
+    "browserify": true,
+    "devel": true,
+    "esversion": 6,
+    "esnext": true,
+    "globals": {
+        "jasmine": false,
+        "describe": false,
+        "expect": false,
+        "it": false,
+        "xit": false,
+        "beforeEach": false,
+        "afterEach": false
+    }
+}
