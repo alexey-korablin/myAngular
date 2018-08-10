@@ -2,8 +2,8 @@
     "browser": true,
     "browserify": true,
     "devel": true,
-    "esversion": 6,
     "esnext": true,
+    "strict": "global",
     "globals": {
         "jasmine": false,
         "describe": false,
@@ -11,6 +11,7 @@
         "it": false,
         "xit": false,
         "beforeEach": false,
-        "afterEach": false
+        "afterEach": false,
+        "module": false
     }
 }

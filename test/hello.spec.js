@@ -1,10 +1,12 @@
 'use strict';
 
-import sayHello from './src/hello';
+const sayHello = require( '../src/hello');
 
 describe('Hello', function () {
 
-    it('says hello', () => {
-        expect(sayHello()).toBe('Hello, world!');
+    it('says hello',  () => {
+        const name = 'Jane';
+        const expectedResult = `Hello, ${name}!`;
+        expect(sayHello(name)).toBe(expectedResult);
     });
 });

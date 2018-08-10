@@ -1,3 +1,4 @@
+"use strict";
 module.exports = (config) => {
     config.set({
         frameworks: ['jasmine', 'browserify'],
@@ -23,23 +24,28 @@ module.exports = (config) => {
         },
         browserify: {
             debug: true,
-            transform: [['babelify', {'es6': true}]]
+            transform: [['babelify', {presets: ['es2015']} ]]
         },
-        babelPreprocessor: {
-            options: {
-              presets: ['es2015', 'env'],
-            //   plugins: ['transform-class-properties'],
-              sourceMap: 'inline'
-            },
-            filename: function (file) {
-              return file.originalPath.replace(/\.js$/, '.es5.js');
-            },
-            sourceFileName: function (file) {
-              return file.originalPath;
-            }
-        },
-        // logLevel: config.LOG_INFO,
-        logLevel: config.LOG_DEBUG,
+        colors: true,
+        jshintPreprocessor: {
+            jshintrc: './.jshintrc'
+          },
+        // babelPreprocessor: {
+        //     options: {
+        //       presets: ['es2015', 'env'],
+        //       plugins: ['transform-class-properties'],
+        //       sourceMap: 'inline'
+        //     },
+        //     filename: function (file) {
+        //       return file.originalPath.replace(/\.js$/, '.es5.js');
+        //     },
+        //     sourceFileName: function (file) {
+        //       return file.originalPath;
+        //     }
+        // },
+        logLevel: config.LOG_INFO,
+        // logLevel: config.LOG_DEBUG,
+        // singleRun: true,
         concurrency: Infinity
-    })
-}
+    });
+};
