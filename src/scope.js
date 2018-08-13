@@ -13,7 +13,11 @@ class Scope {
     }
 
     $digest() {
-        this.$$watchers.forEach(watcher => watcher.listenerFn());
+        const self = this;
+        this.$$watchers.forEach(watcher => {
+            watcher.watchFn(self);
+            watcher.listenerFn(null, null, self);
+        });
     }
 }
 

@@ -28,5 +28,33 @@ describe('Scope', function () {
 
             expect(listenerFn).toHaveBeenCalled();
         });
+
+        it('calls the watch function with the scope as the argument', () => {
+            const watchFn = jasmine.createSpy();
+            const listenerFn = () => {};
+            scope.$watch(watchFn, listenerFn);
+
+            scope.$digest();
+
+            expect(watchFn).toHaveBeenCalledWith(scope);
+        });
+
+        it('call the listener function when the watched value changes', () => {
+            scope.someValue = 'a';
+            scope.counter = 0;
+
+            scope.$watch((scope) => scope.someValue, (newValue, oldValue, scope) =>  scope.counter++);
+
+            expect(scope.counter).toBe(0);
+
+            scope.$digest();
+            expect(scope.counter).toBe(1);
+
+            scope.someValue = 'b';
+            expect(scope.counter).toBe(1);
+
+            scope.$digest();
+            expect(scope.counter).toBe(2);
+        });
     });
 });
