@@ -75,5 +75,14 @@ describe('Scope', function () {
             scope.$digest();
             expect(oldValueGiven).toBe(123);
         });
+
+        it('may have watchers that omit the listener function', () => {
+            const watchFn = jasmine.createSpy().and.returnValue('something');
+            scope.$watch(watchFn);
+
+            scope.$digest();
+
+            expect(watchFn).toHaveBeenCalled();
+        });
     });
 });
