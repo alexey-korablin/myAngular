@@ -14,18 +14,28 @@ class Scope {
         this.$$watchers.push(watcher);
     }
 
-    $digest() {
+    $$digestOnce() {
         const self = this;
         let newValue;
         let oldValue;
+        let dirty = false;
         this.$$watchers.forEach(watcher => {
             newValue = watcher.watchFn(self);
             oldValue = watcher.last;
             if (newValue !== oldValue) {
                 watcher.last = newValue;
                 watcher.listenerFn(newValue, (oldValue === initWatchVal ? newValue : oldValue), self);
+                dirty = true;
             }
         });
+        return dirty;
+    }
+
+    $digest() {
+        let dirty;
+        do {
+            dirty = this.$$digestOnce();
+        } while (dirty);
     }
 }
 
