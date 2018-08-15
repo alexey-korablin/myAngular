@@ -1,5 +1,6 @@
 'use strict';
 
+const _ = require('lodash');
 const Scope = require('../src/scope');
 
 describe('Scope', function () {
@@ -131,6 +132,43 @@ describe('Scope', function () {
             );
 
             expect(() => scope.$digest()).toThrow();
+        });
+
+        it('ends the digest when the last watch is clean', () => {
+            scope.array = new Array(100).fill(1);
+            let watchExecutions = 0;
+
+            scope.array.forEach((item, i) => {
+                scope.$watch((scope) => {
+                    watchExecutions++;
+                    return scope.array[i];
+                }, (newValue, oldValue, scope) => {});
+            });
+
+            scope.$digest();
+            expect(watchExecutions).toBe(200);
+
+            scope.array[0] = 420;
+            scope.$digest();
+            expect(watchExecutions).toBe(301);
+        });
+
+        it('does not end digest so that new watchers are not run', () => {
+            scope.aValue = 'abc';
+            scope.counter = 0;
+
+            scope.$watch(
+                (scope) => scope.aValue,
+                (newValue, oldValue, scope) => {
+                    scope.$watch(
+                        scope => scope.aValue,
+                        (newValue, oldValue, scope) => scope.counter++
+                    );
+                }
+            );
+
+            scope.$digest();
+            expect(scope.counter).toBe(1);
         });
     });
 });
