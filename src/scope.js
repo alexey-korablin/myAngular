@@ -10,8 +10,17 @@ class Scope {
         this.$$lastDirtyWatch = null;
     }
 
-    $watch(watchFn, listenerFn = () => {}) {
-        const watcher = {watchFn, listenerFn, last: initWatchVal};
+    $$areEqual(newValue, oldValue, valueEq) {
+        return valueEq ? _.isEqual(newValue, oldValue) : newValue === oldValue;
+    }
+
+    $watch(watchFn, listenerFn = () => {}, valueEq = false) {
+        const watcher = {
+            watchFn,
+            listenerFn,
+            valueEq: !!valueEq,
+            last: initWatchVal
+        };
         this.$$watchers.push(watcher);
         this.$$lastDirtyWatch = null;
     }
@@ -24,9 +33,9 @@ class Scope {
         _.forEach(this.$$watchers, watcher => {
             newValue = watcher.watchFn(self);
             oldValue = watcher.last;
-            if (newValue !== oldValue) {
+            if (!self.$$areEqual(newValue, oldValue, watcher.valueEq)) {
                 self.$$lastDirtyWatch = watcher;
-                watcher.last = newValue;
+                watcher.last = watcher.valueEq ? _.cloneDeep(newValue) : newValue;
                 watcher.listenerFn(newValue, (oldValue === initWatchVal ? newValue : oldValue), self);
                 dirty = true;
             } else if (self.$$lastDirtyWatch === watcher) {
