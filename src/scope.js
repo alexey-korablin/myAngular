@@ -8,6 +8,11 @@ class Scope {
     constructor() {
         this.$$watchers = [];
         this.$$lastDirtyWatch = null;
+        this.$$asyncQueue = [];
+    }
+
+    $evalAsync(expr) {
+        this.$$asyncQueue.push({scope: this, expression: expr});
     }
 
     $apply(expr) {
@@ -65,6 +70,10 @@ class Scope {
         let ttl = 10;
         this.$$lastDirtyWatch = null;
         do {
+            while (this.$$asyncQueue.length) {
+                const asyncTask = this.$$asyncQueue.shift();
+                asyncTask.scope.$eval(asyncTask.expression);
+            }
             dirty = this.$$digestOnce();
             if (dirty && !(ttl--)) {
                 throw '10 digest iterations reached';
