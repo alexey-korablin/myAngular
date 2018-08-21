@@ -220,5 +220,21 @@ describe('Scope', function () {
 
             expect(result).toBe(44);
         });
+
+        it('executes $apply\'ed fuction and starts the digest', () => {
+            scope.aValue = 'someValue';
+            scope.counter = 0;
+
+            scope.$watch(
+                (scope) => scope.aValue,
+                (newValue, oldValue, scope) => scope.counter++
+            );
+
+            scope.$digest();
+            expect(scope.counter).toBe(1);
+
+            scope.$apply((scope) => scope.aValue = 'someOtherValue');
+            expect(scope.counter).toBe(2);
+        });
     });
 });

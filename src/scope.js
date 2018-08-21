@@ -10,6 +10,14 @@ class Scope {
         this.$$lastDirtyWatch = null;
     }
 
+    $apply(expr) {
+        try {
+            this.$eval(expr);
+        } finally {
+            this.$digest();
+        }
+    }
+
     $eval(expr, locals) {
         return expr(this, locals);
     }
