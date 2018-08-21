@@ -10,6 +10,10 @@ class Scope {
         this.$$lastDirtyWatch = null;
     }
 
+    $eval(expr, locals) {
+        return expr(this, locals);
+    }
+
     $$areEqual(newValue, oldValue, valueEq) {
         return valueEq ? _.isEqual(newValue, oldValue)
         : newValue === oldValue || (typeof newValue === 'number' &&
