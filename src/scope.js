@@ -11,7 +11,10 @@ class Scope {
     }
 
     $$areEqual(newValue, oldValue, valueEq) {
-        return valueEq ? _.isEqual(newValue, oldValue) : newValue === oldValue;
+        return valueEq ? _.isEqual(newValue, oldValue)
+        : newValue === oldValue || (typeof newValue === 'number' &&
+        typeof oldValue === 'number' && isNaN(newValue) &&
+        isNaN(oldValue));
     }
 
     $watch(watchFn, listenerFn = () => {}, valueEq = false) {
