@@ -304,5 +304,44 @@ describe('Scope', function () {
 
             expect(() => scope.$digest()).toThrow();
         });
+
+        it('has a $$phase field whose value is the current digest phase', () => {
+            scope.aValue = [1, 2, 3];
+            scope.phaseInWatchFunction = undefined;
+            scope.phaseInListenerFunction = undefined;
+            scope.phaseInApplyFunction = undefined;
+
+            scope.$watch(
+                (scope) => {
+                    scope.phaseInWatchFunction = scope.$$phase;
+                    return scope.aValue;
+                },
+                (newValue, oldValue, scope) => scope.phaseInListenerFunction = scope.$$phase
+            );
+
+            scope.$apply((scope) => scope.phaseInApplyFunction = scope.$$phase);
+
+            expect(scope.phaseInWatchFunction).toBe('$digest');
+            expect(scope.phaseInListenerFunction).toBe('$digest');
+            expect(scope.phaseInApplyFunction).toBe('$apply');
+        });
+
+        it('schedules digest in $evalAsync', (done) => {
+            scope.aValue = 'abc';
+            scope.counter = 0;
+
+            scope.$watch(
+                (scope) => scope.aValue,
+                (newValue, oldValue, scope) => scope.counter++
+            );
+
+            scope.$evalAsync((scope) => {});
+
+            expect(scope.counter).toBe(0);
+            setTimeout(() => {
+                expect(scope.counter).toBe(1);
+                done();
+            }, 50);
+        });
     });
 });

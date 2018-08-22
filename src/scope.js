@@ -9,16 +9,38 @@ class Scope {
         this.$$watchers = [];
         this.$$lastDirtyWatch = null;
         this.$$asyncQueue = [];
+        this.$$phase = null;
+    }
+
+    $beginPhase(phase) {
+        if (this.$$phase === phase) {
+            throw `${this.$$phase} already in progress`;
+        }
+        this.$$phase = phase;
+    }
+
+    $clearPhase() {
+        this.$$phase = null;
     }
 
     $evalAsync(expr) {
-        this.$$asyncQueue.push({scope: this, expression: expr});
+        const self = this;
+        if (!self.$$phase && !self.$$asyncQueue.length) {
+            setTimeout(() => {
+                if (self.$$asyncQueue.length) {
+                    self.$digest();
+                }
+            }, 0);
+        }
+        self.$$asyncQueue.push({scope: self, expression: expr});
     }
 
     $apply(expr) {
         try {
+            this.$beginPhase('$apply');
             this.$eval(expr);
         } finally {
+            this.$clearPhase();
             this.$digest();
         }
     }
@@ -68,6 +90,7 @@ class Scope {
     $digest() {
         let dirty;
         let ttl = 10;
+        this.$beginPhase('$digest');
         this.$$lastDirtyWatch = null;
         do {
             while (this.$$asyncQueue.length) {
@@ -76,9 +99,11 @@ class Scope {
             }
             dirty = this.$$digestOnce();
             if ((dirty || this.$$asyncQueue.length) && !(ttl--)) {
+                this.$clearPhase();
                 throw '10 digest iterations reached';
             }
         } while (dirty || this.$$asyncQueue.length);
+        this.$clearPhase();
     }
 }
 
