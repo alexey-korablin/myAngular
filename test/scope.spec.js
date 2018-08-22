@@ -254,5 +254,55 @@ describe('Scope', function () {
             expect(scope.asyncEvaluated).toBe(true);
             expect(scope.asyncEvaluatedImmediatelly).toBe(false);
         });
+
+        it('executes $evalAsync\'ed functions added by watch functions', () => {
+            scope.aValue = [1, 2, 3];
+            scope.asyncEvaluated = false;
+
+            scope.$watch(
+                (scope) => {
+                    if (!scope.asyncEvaluated) {
+                        scope.$evalAsync((scope) => scope.asyncEvaluated = true);
+                    }
+                    return scope.aValue;
+                },
+                (newValue, oldValue, scope) => {}
+            );
+
+            scope.$digest();
+            expect(scope.asyncEvaluated).toBe(true);
+        });
+
+        it('executes $evalAsync\'ed functions even when not dirty', () => {
+            scope.aValue = [1, 2, 3];
+            scope.asyncEvaluatedTimes = 0;
+
+            scope.$watch(
+                (scope) => {
+                    if (scope.asyncEvaluatedTimes < 2) {
+                        scope.$evalAsync((scope) => scope.asyncEvaluatedTimes++);
+                    }
+                    return scope.aValue;
+                },
+                (newValue, oldValue, scope) => {}
+            );
+
+            scope.$digest();
+            expect(scope.asyncEvaluatedTimes).toBe(2);
+        });
+
+        it('eventyally halts $evalAsyncs added by watches', () => {
+            scope.aValue = [1, 2, 3];
+            
+            scope.$watch(
+                (scope) => {
+                    scope.$evalAsync((scope) => {});
+                    return scope.aValue;
+                },
+                (newValue, oldValue, scope) => {}
+            );
+
+            expect(() => scope.$digest()).toThrow();
+        });
     });
 });
