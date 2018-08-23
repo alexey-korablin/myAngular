@@ -343,5 +343,189 @@ describe('Scope', function () {
                 done();
             }, 50);
         });
+
+        it('allows async $apply with $applyAsync', (done) => {
+            scope.counter = 0;
+
+            scope.$watch(
+                (scope) => scope.aValue,
+                (newValue, oldValue, scope) => scope.counter++
+            );
+
+            scope.$digest();
+
+            expect(scope.counter).toBe(1);
+
+            scope.$applyAsync((scope) => scope.aValue = 'abc');
+            expect(scope.counter).toBe(1);
+
+            setTimeout(() => {
+                expect(scope.counter).toBe(2);
+                done();
+            }, 50);
+        });
+
+        it('never executes $applyAsync\'ed function in the same cycle', (done) => {
+            scope.aValue = [1, 2, 3];
+            scope.asyncApplied = false;
+
+            scope.$watch(
+                (scope) => scope.aValue,
+                (newValue, oldValue, scope) => {
+                    scope.$applyAsync((scope) => scope.asyncApplied = true);
+                }
+            );
+
+            scope.$digest();
+            expect(scope.asyncApplied).toBe(false);
+            setTimeout(() => {
+                expect(scope.asyncApplied).toBe(true);
+                done();
+            }, 50);
+        });
+
+        it('coalesce many calls $applyAsync', (done) => {
+            scope.counter = 0;
+
+            scope.$watch(
+                (scope) => {
+                    scope.counter++;
+                    return scope.aValue;
+                },
+                (newValue, oldValue, scope) => {}
+            );
+
+            scope.$applyAsync((scope) => scope.aValue = 'abc');
+            scope.$applyAsync((scope) => scope.aValue = 'def');
+            setTimeout(() => {
+                expect(scope.counter).toBe(2);
+                done();
+            }, 50);
+        });
+
+        it('cancels and flushes $applyAsync if dugested first', (done) => {
+            scope.counter = 0;
+
+            scope.$watch(
+                (scope) => {
+                    scope.counter++;
+                    return scope.aValue;
+                },
+                (newValue, oldValue, scope) => {}
+            );
+
+            scope.$applyAsync((scope) => scope.aValue = 'abc');
+            scope.$applyAsync((scope) => scope.aValue = 'def');
+            
+            scope.$digest();
+            expect(scope.counter).toBe(2);
+            expect(scope.aValue).toBe('def');
+
+            setTimeout(() => {
+                expect(scope.counter).toBe(2);
+                done();
+            }, 50);
+        });
+
+        it('runs a $$postDigest function after each digest', () => {
+            scope.counter = 0;
+
+            scope.$$postDigest(() => scope.counter++);
+
+            expect(scope.counter).toBe(0);
+
+            scope.$digest();
+            expect(scope.counter).toBe(1);
+
+            scope.$digest();
+            expect(scope.counter).toBe(1);
+        });
+
+        it('does not include $$postDigest in the digest',  () => {
+            scope.aValue = 'original value';
+
+            scope.$$postDigest(() => scope.aValue = 'changed value');
+            scope.$watch(
+                (scope) => scope.aValue,
+                (newValue, oldValue, scope) => scope.watchedValue = newValue
+            );
+
+            scope.$digest();
+            expect(scope.watchedValue).toBe('original value');
+
+            scope.$digest();
+            expect(scope.watchedValue).toBe('changed value');
+        });
+
+        it('catches exception in the watch functions and continues', () => {
+            scope.aValue = 'abc';
+            scope.counter = 0;
+
+            scope.$watch(
+                (scope) => { throw 'Error'; },
+                (newValue, oldValue, scope) => {}
+            );
+            scope.$watch(
+                (scope) => scope.aValue,
+                (newValue, oldValue, scope) => scope.counter++
+            );
+
+            scope.$digest();
+            expect(scope.counter).toBe(1);
+        });
+
+        it('catches exception in the listener functions and continues', () => {
+            scope.aValue = 'abc';
+            scope.counter = 0;
+
+            scope.$watch(
+                (scope) => scope.aValue,
+                (newValue, oldValue, scope) => { throw 'Error'; }
+            );
+            scope.$watch(
+                (scope) => scope.aValue,
+                (newValue, oldValue, scope) => scope.counter++
+            );
+
+            scope.$digest();
+            expect(scope.counter).toBe(1); 
+        });
+
+        it('catches exceptions in $evalAsync', (done) => {
+            scope.aValue = 'abc';
+            scope.counter = 0;
+
+            scope.$watch(
+                (scope) => scope.aValue,
+                (newValue, oldValue, scope) => scope.counter++
+            );
+            scope.$evalAsync((scope) => { throw 'Error'; });
+
+            setTimeout(() => {
+                expect(scope.counter).toBe(1);
+                done();
+            }, 50);
+        });
+
+        it('catches exceptions in $applyAsync', (done) => {
+            scope.$applyAsync((scope) => { throw 'Error'; });
+            scope.$applyAsync((scope) => { throw 'Error'; });
+            scope.$applyAsync((scope) => scope.applied = true);
+
+            setTimeout(() => {
+                expect(scope.applied).toBe(true);
+                done();
+            }, 50);
+        });
+
+        it('catches exceptions in $$postDigest', () => {
+            let didRun = false;
+
+            scope.$$postDigest(() => { throw 'Error'; });
+            scope.$$postDigest(() => didRun = true);
+
+            scope.$digest();
+            expect(didRun).toBe(true);
+        });
     });
 });
