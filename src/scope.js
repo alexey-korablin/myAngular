@@ -32,7 +32,11 @@ class Scope {
 
     $$flushApplyAsync() {
         while(this.$$applyAsyncQueue.length) {
-            this.$$applyAsyncQueue.shift()();
+            try {
+                this.$$applyAsyncQueue.shift()();
+            } catch (e) {
+                console.error(e);
+            }
         }
         this.$$applyAsyncId = null;
     }
