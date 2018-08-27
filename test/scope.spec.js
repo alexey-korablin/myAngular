@@ -673,5 +673,71 @@ describe('Scope', function () {
             scope.$digest();
             expect(counter).toBe(1);
         });
+
+        it('uses the same array of old and new values on first run', () => {
+            let gotNewValues;
+            let gotOldValues;
+
+            scope.aValue = 1;
+            scope.anotherValue = 2;
+
+            scope.$watchGroup(
+                [
+                    (scope) => scope.aValue,
+                    (scope) => scope.anotherValue
+                ],
+                (newValues, oldValues, scope) => {
+                    gotNewValues = newValues;
+                    gotOldValues = oldValues;
+                }
+            );
+
+            scope.$digest();
+            expect(gotNewValues).toBe(gotOldValues);
+        });
+
+        it('uses different arrays for old and new values on subsequent runs', () => {
+            let gotNewValues;
+            let gotOldValues;
+
+            scope.aValue = 1;
+            scope.anotherValue = 2;
+
+            scope.$watchGroup(
+                [
+                    (scope) => scope.aValue,
+                    (scope) => scope.anotherValue
+                ],
+                (newValues, oldValues, scope) => {
+                    gotNewValues = newValues;
+                    gotOldValues = oldValues;
+                }
+            );
+
+            scope.$digest();
+            expect(gotNewValues).toBe(gotOldValues);
+
+            scope.anotherValue = 3;
+            scope.$digest();
+            expect(gotNewValues).toEqual([1, 3]);
+            expect(gotOldValues).toEqual([1, 2]);
+        });
+
+        it('calls the listener once when the watch array is empty', () => {
+            let gotNewValues;
+            let gotOldValues;
+
+            scope.$watchGroup(
+                [],
+                (newValues, oldValues, scope) => {
+                    gotNewValues = newValues;
+                    gotOldValues = oldValues;
+                }
+            );
+
+            scope.$digest();
+            expect(gotNewValues).toEqual([]);
+            expect(gotOldValues).toEqual([]);
+        });
     });
 });

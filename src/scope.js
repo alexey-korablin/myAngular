@@ -105,10 +105,16 @@ class Scope {
         const self = this;
         const newValues = new Array(watchFns.length);
         const oldValues = new Array(watchFns.length);
+        let firstRun = true;
         let changeReactionScheduled = false;
 
         const watchGroupListener = () => {
-            listenerFn(newValues, oldValues, self);
+            if (firstRun) {
+                firstRun = false;
+                listenerFn(newValues, newValues, self);
+            } else {
+                listenerFn(newValues, oldValues, self);
+            }
             changeReactionScheduled = false;
         };
 
