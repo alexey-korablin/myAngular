@@ -101,6 +101,29 @@ class Scope {
         };
     }
 
+    $watchGroup(watchFns, listenerFn) {
+        const self = this;
+        const newValues = new Array(watchFns.length);
+        const oldValues = new Array(watchFns.length);
+        let changeReactionScheduled = false;
+
+        const watchGroupListener = () => {
+            listenerFn(newValues, oldValues, self);
+            changeReactionScheduled = false;
+        };
+
+        _.forEach(watchFns, (watchFn, i) => {
+            self.$watch(watchFn, (newValue, oldValue) => {
+                newValues[i] = newValue;
+                oldValues[i] = oldValue;
+                if (!changeReactionScheduled) {
+                    changeReactionScheduled = true;
+                    self.$evalAsync(watchGroupListener);
+                }
+            });
+        });
+    }
+
     $$digestOnce() {
         const self = this;
         let newValue;

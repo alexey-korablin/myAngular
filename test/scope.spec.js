@@ -625,4 +625,53 @@ describe('Scope', function () {
             expect(scope.counter).toBe(0);
         });
     });
+
+    describe('watchGroup', () => {
+        let scope;
+
+        beforeEach(() => {
+            scope = new Scope();
+        });
+
+        it('takes watchers as an array and calls listener with arrays', () => {
+            let gotNewValues;
+            let gotOldValues;
+            const expectedResult = [1, 2];
+
+            scope.aValue = 1;
+            scope.anotherValue = 2;
+
+            scope.$watchGroup(
+                [
+                    (scope) => scope.aValue,
+                    (scope) => scope.anotherValue
+                ], 
+                (newValues, oldValues, scope) => {
+                    gotNewValues = newValues;
+                    gotOldValues = oldValues;
+                }
+            );
+
+            scope.$digest();
+            expect(gotNewValues).toEqual(expectedResult);
+            expect(gotOldValues).toEqual(expectedResult);
+        });
+
+        it('only calls listener once per digest', () => {
+            let counter = 0;
+
+            scope.aValue = 1;
+            scope.anotherValue = 2;
+
+            scope.$watchGroup([
+                    (scope) => scope.aValue,
+                    (scope) => scope.anotherValue
+                ],
+                (newValues, oldValues, scope) => counter++
+            );
+
+            scope.$digest();
+            expect(counter).toBe(1);
+        });
+    });
 });
