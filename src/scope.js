@@ -202,6 +202,15 @@ class Scope {
             }
         }
     }
+
+    // inheritance. $new()
+    $new() {
+        // let child;
+        // const ChildScope = function () {};
+        // ChildScope.prototype = this;
+        // return (child = new ChildScope());
+        return Object.create(this);
+    }
 }
 
 module.exports = Scope;
