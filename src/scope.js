@@ -105,8 +105,19 @@ class Scope {
         const self = this;
         const newValues = new Array(watchFns.length);
         const oldValues = new Array(watchFns.length);
+        let shouldCall = false;
         let firstRun = true;
         let changeReactionScheduled = false;
+
+        if (watchFns.length === 0) {
+            shouldCall = true;
+            self.$evalAsync(() => {
+                if (shouldCall) {
+                    listenerFn(newValues, oldValues, self);
+                }
+            });
+            return () => shouldCall = false;
+        }
 
         const watchGroupListener = () => {
             if (firstRun) {
@@ -118,8 +129,8 @@ class Scope {
             changeReactionScheduled = false;
         };
 
-        _.forEach(watchFns, (watchFn, i) => {
-            self.$watch(watchFn, (newValue, oldValue) => {
+        const destroyFunctions = _.map(watchFns, (watchFn, i) => {
+            return self.$watch(watchFn, (newValue, oldValue) => {
                 newValues[i] = newValue;
                 oldValues[i] = oldValue;
                 if (!changeReactionScheduled) {
@@ -128,6 +139,8 @@ class Scope {
                 }
             });
         });
+
+        return () => _.forEach(destroyFunctions, (destroyFunction) => destroyFunction());
     }
 
     $$digestOnce() {

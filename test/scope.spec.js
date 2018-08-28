@@ -739,5 +739,38 @@ describe('Scope', function () {
             expect(gotNewValues).toEqual([]);
             expect(gotOldValues).toEqual([]);
         });
+
+        it('can be derigistered', () => {
+            let counter = 0;
+            scope.aValue = 1;
+            scope.anotherValue = 2;
+
+            const destroyGroup = scope.$watchGroup(
+                [
+                    (scope) => scope.aValue,
+                    (scope) => scope.anotherValue
+                ],
+                (newValues, oldValues, scope) => counter++
+            );
+
+            scope.$digest();
+
+            scope.anotherValue = 3;
+            destroyGroup();
+            scope.$digest();
+
+            expect(counter).toBe(1);
+        });
+
+        it('does not call the zero-watch listener when derigistered first', () => {
+            let counter = 0;
+
+            const destroyGroup = scope.$watchGroup([], (newValues, oldValues, scope) => counter++);
+
+            destroyGroup();
+            scope.$digest();
+            
+            expect(counter).toBe(0);
+        });
     });
 });
