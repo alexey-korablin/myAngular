@@ -205,11 +205,13 @@ class Scope {
 
     // inheritance. $new()
     $new() {
-        // let child;
+        let child;
         // const ChildScope = function () {};
         // ChildScope.prototype = this;
         // return (child = new ChildScope());
-        return Object.create(this);
+        child = Object.create(this);
+        child.$$watchers = [];
+        return child;
     }
 }
 
