@@ -13,6 +13,7 @@ class Scope {
         this.$$applyAsyncQueue = [];
         this.$$applyAsyncId = null;
         this.$$postDigestQueue = [];
+        this.$$children = [];
     }
 
     $$postDigest(fn) {
@@ -143,28 +144,41 @@ class Scope {
         return () => _.forEach(destroyFunctions, (destroyFunction) => destroyFunction());
     }
 
+    $$everyScope(fn) {
+        if (fn(this)) {
+            return this.$$children.every((child) => child.$$everyScope(fn));
+        } else {
+            return false;
+        }
+    }
+
     $$digestOnce() {
         const self = this;
-        let newValue;
-        let oldValue;
         let dirty = false;
-        _.forEachRight(this.$$watchers, watcher => {
-            try {
-                if (watcher) {
-                    newValue = watcher.watchFn(self);
-                    oldValue = watcher.last;
-                    if (!self.$$areEqual(newValue, oldValue, watcher.valueEq)) {
-                        self.$$lastDirtyWatch = watcher;
-                        watcher.last = watcher.valueEq ? _.cloneDeep(newValue) : newValue;
-                        watcher.listenerFn(newValue, (oldValue === initWatchVal ? newValue : oldValue), self);
-                        dirty = true;
-                    } else if (self.$$lastDirtyWatch === watcher) {
-                        return false;
+        let continueLoop = true;
+        this.$$everyScope((scope) => {
+            let newValue;
+            let oldValue;
+            _.forEachRight(scope.$$watchers, watcher => {
+                try {
+                    if (watcher) {
+                        newValue = watcher.watchFn(scope);
+                        oldValue = watcher.last;
+                        if (!scope.$$areEqual(newValue, oldValue, watcher.valueEq)) {
+                            self.$$lastDirtyWatch = watcher;
+                            watcher.last = watcher.valueEq ? _.cloneDeep(newValue) : newValue;
+                            watcher.listenerFn(newValue, (oldValue === initWatchVal ? newValue : oldValue), scope);
+                            dirty = true;
+                        } else if (self.$$lastDirtyWatch === watcher) {
+                            continueLoop = false;
+                            return false;
+                        }
                     }
+                } catch (e) {
+                    console.error(e);
                 }
-            } catch (e) {
-                console.error(e);
-            }
+            });
+            return continueLoop;
         });
         return dirty;
     }
@@ -210,7 +224,9 @@ class Scope {
         // ChildScope.prototype = this;
         // return (child = new ChildScope());
         child = Object.create(this);
+        this.$$children.push(child);
         child.$$watchers = [];
+        child.$$children = [];
         return child;
     }
 }

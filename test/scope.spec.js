@@ -897,5 +897,34 @@ describe('Scope', function () {
             child.$digest();
             expect(child.aValueWas).toBeUndefined();
         });
+
+        it('keeps a record of its children', () => {
+            const parent = new Scope();
+            const child1 = parent.$new();
+            const child2 = parent.$new();
+            const child2_1 = child2.$new();
+
+            expect(parent.$$children.length).toBe(2);
+            expect(parent.$$children[0]).toBe(child1);
+            expect(parent.$$children[1]).toBe(child2);
+
+            expect(child1.$$children.length).toBe(0);
+            expect(child2.$$children.length).toBe(1);
+            expect(child2.$$children[0]).toBe(child2_1);
+        });
+
+        it('digest its children', () => {
+            const parent = new Scope();
+            const child = parent.$new();
+
+            parent.aValue = 'abc';
+            child.$watch(
+                (scope) => scope.aValue,
+                (newValue, oldValue, scope) => scope.aValueWas = newValue
+            );
+
+            parent.$digest();
+            expect(child.aValueWas).toBe('abc');
+        });
     });
 });
