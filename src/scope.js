@@ -14,6 +14,7 @@ class Scope {
         this.$$applyAsyncId = null;
         this.$$postDigestQueue = [];
         this.$$children = [];
+        this.$root = this;
     }
 
     $$postDigest(fn) {
@@ -56,7 +57,7 @@ class Scope {
             this.$eval(expr);
         } finally {
             this.$clearPhase();
-            this.$digest();
+            this.$root.$digest();
         }
     }
     
@@ -65,7 +66,7 @@ class Scope {
         if (!self.$$phase && !self.$$asyncQueue.length) {
             setTimeout(() => {
                 if (self.$$asyncQueue.length) {
-                    self.$digest();
+                    self.$root.$digest();
                 }
             }, 0);
         }
@@ -91,13 +92,13 @@ class Scope {
             valueEq: !!valueEq,
             last: initWatchVal
         };
-        self.$$watchers.unshift(watcher);
-        self.$$lastDirtyWatch = null;
+        this.$$watchers.unshift(watcher);
+        this.$root.$$lastDirtyWatch = null;
         return () => {
             const index = self.$$watchers.indexOf(watcher);
             if (index > -1) {
                 self.$$watchers.splice(index, 1);
-                self.$$lastDirtyWatch = null;
+                self.$root.$$lastDirtyWatch = null;
             }
         };
     }
@@ -165,11 +166,11 @@ class Scope {
                         newValue = watcher.watchFn(scope);
                         oldValue = watcher.last;
                         if (!scope.$$areEqual(newValue, oldValue, watcher.valueEq)) {
-                            self.$$lastDirtyWatch = watcher;
+                            self.$root.$$lastDirtyWatch = watcher;
                             watcher.last = watcher.valueEq ? _.cloneDeep(newValue) : newValue;
                             watcher.listenerFn(newValue, (oldValue === initWatchVal ? newValue : oldValue), scope);
                             dirty = true;
-                        } else if (self.$$lastDirtyWatch === watcher) {
+                        } else if (self.$root.$$lastDirtyWatch === watcher) {
                             continueLoop = false;
                             return false;
                         }
@@ -187,7 +188,7 @@ class Scope {
         let dirty;
         let ttl = 10;
         this.$beginPhase('$digest');
-        this.$$lastDirtyWatch = null;
+        this.$root.$$lastDirtyWatch = null;
         if (this.$$applyAsyncId) {
             clearTimeout(this.$$applyAsyncId);
             this.$$flushApplyAsync();
