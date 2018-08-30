@@ -40,14 +40,14 @@ class Scope {
                 console.error(e);
             }
         }
-        this.$$applyAsyncId = null;
+        this.$root.$$applyAsyncId = null;
     }
 
     $applyAsync(expr) {
         const self = this;
         self.$$applyAsyncQueue.push(() => self.$eval(expr));
-        if (self.$$applyAsyncId === null) {
-            self.$$applyAsyncId = setTimeout(() => self.$apply(_.bind(self.$$flushApplyAsync, self)), 0);
+        if (self.$root.$$applyAsyncId === null) {
+            self.$root.$$applyAsyncId = setTimeout(() => self.$apply(_.bind(self.$$flushApplyAsync, self)), 0);
         }
     }
 
@@ -189,8 +189,8 @@ class Scope {
         let ttl = 10;
         this.$beginPhase('$digest');
         this.$root.$$lastDirtyWatch = null;
-        if (this.$$applyAsyncId) {
-            clearTimeout(this.$$applyAsyncId);
+        if (this.$root.$$applyAsyncId) {
+            clearTimeout(this.$root.$$applyAsyncId);
             this.$$flushApplyAsync();
         }
         do {
@@ -219,12 +219,20 @@ class Scope {
     }
 
     // inheritance. $new()
-    $new() {
+    $new(isolated) {
         let child;
         // const ChildScope = function () {};
         // ChildScope.prototype = this;
         // return (child = new ChildScope());
-        child = Object.create(this);
+        if (isolated) {
+            child = new Scope();
+            child.$root = this.$root;
+            child.$$asyncQueue = this.$$asyncQueue;
+            child.$$postDigestQueue = this.$$postDigestQueue;
+            child.$$applyAsyncQueue = this.$$applyAsyncQueue;
+        } else {
+            child = Object.create(this);
+        }
         this.$$children.push(child);
         child.$$watchers = [];
         child.$$children = [];
