@@ -219,21 +219,22 @@ class Scope {
     }
 
     // inheritance. $new()
-    $new(isolated) {
+    $new(isolated, parent) {
         let child;
+        parent = parent || this;
         // const ChildScope = function () {};
         // ChildScope.prototype = this;
         // return (child = new ChildScope());
         if (isolated) {
             child = new Scope();
-            child.$root = this.$root;
-            child.$$asyncQueue = this.$$asyncQueue;
-            child.$$postDigestQueue = this.$$postDigestQueue;
-            child.$$applyAsyncQueue = this.$$applyAsyncQueue;
+            child.$root = parent.$root;
+            child.$$asyncQueue = parent.$$asyncQueue;
+            child.$$postDigestQueue = parent.$$postDigestQueue;
+            child.$$applyAsyncQueue = parent.$$applyAsyncQueue;
         } else {
             child = Object.create(this);
         }
-        this.$$children.push(child);
+        parent.$$children.push(child);
         child.$$watchers = [];
         child.$$children = [];
         return child;
