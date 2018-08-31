@@ -219,6 +219,17 @@ class Scope {
     }
 
     // inheritance. $new()
+    $destroy() {
+        if (this.$parent) {
+            const siblings = this.$parent.$$children;
+            const indexOfThis = siblings.indexOf(this);
+            if (indexOfThis > -1) {
+                siblings.splice(indexOfThis, 1);
+            }
+        }
+        this.$$watchers = null;
+    }
+
     $new(isolated, parent) {
         let child;
         parent = parent || this;
@@ -237,6 +248,7 @@ class Scope {
         parent.$$children.push(child);
         child.$$watchers = [];
         child.$$children = [];
+        child.$parent = parent;
         return child;
     }
 }

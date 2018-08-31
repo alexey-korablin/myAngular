@@ -1073,5 +1073,30 @@ describe('Scope', function () {
             hierarchyParent.$digest();
             expect(child.counter).toBe(2);
         });
+
+        it('is no longer digested when $destroy has been called', () => {
+            const parent = new Scope();
+            const child = parent.$new();
+
+            child.aValue = [1, 2, 3];
+            child.counter = 0;
+            child.$watch(
+                scope => scope.aValue,
+                (newValue, oldValue, scope) => scope.counter++,
+                true
+            );
+
+            parent.$digest();
+            expect(child.counter).toBe(1);
+
+            child.aValue.push(4);
+            parent.$digest();
+            expect(child.counter).toBe(2);
+
+            child.$destroy();
+            child.aValue.push(5);
+            parent.$digest();
+            expect(child.counter).toBe(2);
+        });
     });
 });
