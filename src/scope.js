@@ -145,10 +145,22 @@ class Scope {
         return () => _.forEach(destroyFunctions, (destroyFunction) => destroyFunction());
     }
 
-    // stub function for shallow watching of collections
+    // 
     $watchCollection(watchFn, listenerFn) {
-        const internalWatchFn = (scope) => {};
-        const internalListenerFn = () => {};
+        const self = this;
+        let newValue;
+        let oldValue;
+        let changeCount = 0;
+        const internalWatchFn = (scope) => { 
+            newValue = watchFn(scope);
+            //Check for changes
+            if (!this.$$areEqual(newValue, oldValue, false)) {
+                oldValue = newValue;
+                changeCount += 1;
+            }
+            return changeCount;
+        };
+        const internalListenerFn = () => listenerFn(newValue, oldValue, self);
         return this.$watch(internalWatchFn, internalListenerFn);
     }
 

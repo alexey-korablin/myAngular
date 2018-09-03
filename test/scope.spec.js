@@ -1104,5 +1104,47 @@ describe('Scope', function () {
         beforeEach(() => {
             scope = new Scope();
         });
+
+        it('works like a normal watch for non-collections', () => {
+            let valueProvided;
+            scope.aValue = 42;
+            scope.counter = 0;
+
+            scope.$watchCollection(
+                (scope) => scope.aValue,
+                (newValue, oldValue, scope) => {
+                    valueProvided = newValue;
+                    scope.counter++;
+                }
+            );
+
+            scope.$digest();
+            expect(scope.counter).toBe(1);
+            expect(valueProvided).toBe(42);
+
+            scope.aValue = 43;
+            scope.$digest();
+            expect(scope.counter).toBe(2);
+            expect(valueProvided).toBe(43);
+
+            scope.$digest();
+            expect(scope.counter).toBe(2);
+        });
+
+        it('works like a normal watch for NaNs', () => {
+            scope.aValue = 0 / 0;
+            scope.counter = 0;
+
+            scope.$watchCollection(
+                scope => scope.aValue,
+                (newValue, oldValue, scope) => scope.counter++
+            );
+
+            scope.$digest();
+            expect(scope.counter).toBe(1);
+
+            scope.$digest();
+            expect(scope.counter).toBe(1);
+        });
     });
 });
