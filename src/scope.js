@@ -154,9 +154,20 @@ class Scope {
         const internalWatchFn = (scope) => { 
             newValue = watchFn(scope);
             //Check for changes
-            if (!this.$$areEqual(newValue, oldValue, false)) {
-                oldValue = newValue;
-                changeCount += 1;
+            if (_.isObject(newValue)) {
+                if (_.isArray(newValue)) {
+                    if (!_.isArray(oldValue)) {
+                        changeCount++;
+                        oldValue = [];
+                    }
+                } else {
+
+                }
+            } else {
+                if (!this.$$areEqual(newValue, oldValue, false)) {
+                    oldValue = newValue;
+                    changeCount += 1;
+                }
             }
             return changeCount;
         };
