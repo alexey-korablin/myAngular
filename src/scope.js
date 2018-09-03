@@ -145,6 +145,13 @@ class Scope {
         return () => _.forEach(destroyFunctions, (destroyFunction) => destroyFunction());
     }
 
+    // stub function for shallow watching of collections
+    $watchCollection(watchFn, listenerFn) {
+        const internalWatchFn = (scope) => {};
+        const internalListenerFn = () => {};
+        return this.$watch(internalWatchFn, internalListenerFn);
+    }
+
     $$everyScope(fn) {
         if (fn(this)) {
             return this.$$children.every((child) => child.$$everyScope(fn));

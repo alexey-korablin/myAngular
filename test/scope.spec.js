@@ -528,7 +528,7 @@ describe('Scope', function () {
             expect(didRun).toBe(true);
         });
 
-        it('allows detroying a $watch  with a removal function', () => {
+        it('allows destroying a $watch  with a removal function', () => {
             scope.aValue = 'abc';
             scope.counter = 0;
 
@@ -822,7 +822,6 @@ describe('Scope', function () {
             const parent = new Scope();
             const child = parent.$new();
 
-            // console.log(child);
             parent.aValue = [1, 2, 3];
             child.counter = 0;
 
@@ -1097,6 +1096,13 @@ describe('Scope', function () {
             child.aValue.push(5);
             parent.$digest();
             expect(child.counter).toBe(2);
+        });
+    });
+    describe('$watchCollection', () => {
+        let scope;
+
+        beforeEach(() => {
+            scope = new Scope();
         });
     });
 });
