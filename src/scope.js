@@ -160,6 +160,10 @@ class Scope {
                         changeCount++;
                         oldValue = [];
                     }
+                    if (newValue.length !== oldValue.length) {
+                        changeCount++;
+                        oldValue.length = newValue.length;
+                    }
                 } else {
 
                 }
