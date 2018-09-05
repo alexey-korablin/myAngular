@@ -1281,7 +1281,7 @@ describe('Scope', function () {
             expect(scope.counter).toBe(2);
         });
 
-        fit('notices an item replacedin a NodeList object', () => {
+        it('notices an item replacedin a NodeList object', () => {
             document.documentElement.appendChild(document.createElement('div'));
             scope.arrayLike = document.querySelectorAll('div');
             scope.counter = 0;
@@ -1296,6 +1296,25 @@ describe('Scope', function () {
 
             document.documentElement.appendChild(document.createElement('div'));
             scope.arrayLike = document.querySelectorAll('div');
+            scope.$digest();
+            expect(scope.counter).toBe(2);
+
+            scope.$digest();
+            expect(scope.counter).toBe(2);
+        });
+
+        it('notices when the value becomes an object', () => {
+            scope.counter = 0;
+
+            scope.$watchCollection(
+                scope => scope.obj,
+                (newValue, oldValue, scope) => scope.counter++
+            );
+
+            scope.$digest();
+            expect(scope.counter).toBe(1);
+
+            scope.obj = { a: 1 };
             scope.$digest();
             expect(scope.counter).toBe(2);
 

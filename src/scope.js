@@ -5,11 +5,9 @@ const _ = require('lodash');
 const initWatchVal = () => {};
 
 const isArrayLike = (obj) => {
-    console.log(obj);
     if (_.isNull(obj) || _.isUndefined(obj)) {
         return false;
     }
-    console.log(_.isNumber(obj.length));
     return _.isNumber(obj.length);
 };
 
@@ -180,7 +178,10 @@ class Scope {
                         }
                     });
                 } else {
-
+                    if (!_.isObject(oldValue) || isArrayLike(oldValue)) {
+                        changeCount++;
+                        oldValue = {};
+                    }
                 }
             } else {
                 if (!this.$$areEqual(newValue, oldValue, false)) {
