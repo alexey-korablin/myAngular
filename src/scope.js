@@ -164,6 +164,13 @@ class Scope {
                         changeCount++;
                         oldValue.length = newValue.length;
                     }
+                    _.forEach(newValue, (el, i) => {
+                        const bothNaN = _.isNaN(el) && _.isNaN(oldValue[i]);
+                        if (!bothNaN && el !== oldValue[i]) {
+                            changeCount++;
+                            oldValue[i] = el;
+                        }
+                    });
                 } else {
 
                 }

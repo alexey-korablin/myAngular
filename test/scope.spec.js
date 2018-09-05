@@ -1205,5 +1205,58 @@ describe('Scope', function () {
             scope.$digest();
             expect(scope.counter).toBe(2);
         });
+
+        it('notices an item replaced in an array', () => {
+            scope.arr = [1, 2, 3];
+            scope.counter = 0;
+
+            scope.$watchCollection(
+                scope => scope.arr,
+                (newValue, oldValue, scope) => scope.counter++
+            );
+
+            scope.$digest();
+            expect(scope.counter).toBe(1);
+
+            scope.arr[1] = 42;
+            scope.$digest();
+            expect(scope.counter).toBe(2);
+
+            scope.$digest();
+            expect(scope.counter).toBe(2);
+        });
+
+        it('notices an item reordered in an array', () => {
+            scope.arr = [2, 1, 3];
+            scope.counter = 0;
+
+            scope.$watchCollection(
+                scope => scope.arr,
+                (newValue, oldValue, scope) => scope.counter++
+            );
+
+            scope.$digest();
+            expect(scope.counter).toBe(1);
+
+            scope.arr.sort();
+            scope.$digest();
+            expect(scope.counter).toBe(2);
+
+            scope.$digest();
+            expect(scope.counter).toBe(2);
+        });
+
+        it('does not fail on NaNs in arrays', () => {
+            scope.arr = [1, NaN, 3];
+            scope.counter = 0;
+
+            scope.$watchCollection(
+                scope => scope.arr,
+                (newValue, oldValue, scope) => scope.counter++
+            );
+
+            scope.$digest();
+            expect(scope.counter).toBe(1);
+        });
     });
 });
