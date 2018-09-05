@@ -4,6 +4,15 @@ const _ = require('lodash');
 
 const initWatchVal = () => {};
 
+const isArrayLike = (obj) => {
+    console.log(obj);
+    if (_.isNull(obj) || _.isUndefined(obj)) {
+        return false;
+    }
+    console.log(_.isNumber(obj.length));
+    return _.isNumber(obj.length);
+};
+
 class Scope {
     constructor() {
         this.$$watchers = [];
@@ -143,9 +152,8 @@ class Scope {
         });
 
         return () => _.forEach(destroyFunctions, (destroyFunction) => destroyFunction());
-    }
+    } 
 
-    // 
     $watchCollection(watchFn, listenerFn) {
         const self = this;
         let newValue;
@@ -155,7 +163,7 @@ class Scope {
             newValue = watchFn(scope);
             //Check for changes
             if (_.isObject(newValue)) {
-                if (_.isArray(newValue)) {
+                if (isArrayLike(newValue)) {
                     if (!_.isArray(oldValue)) {
                         changeCount++;
                         oldValue = [];
