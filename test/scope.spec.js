@@ -1321,5 +1321,58 @@ describe('Scope', function () {
             scope.$digest();
             expect(scope.counter).toBe(2);
         });
+
+        it('notices when an attribute is added to an object', () => {
+            scope.obj = { a: 1 };
+            scope.counter = 0;
+
+            scope.$watchCollection(
+                scope => scope.obj,
+                (newValue, oldValue, scope) => scope.counter++
+            );
+
+            scope.$digest();
+            expect(scope.counter).toBe(1);
+
+            scope.obj.b = 2;
+            scope.$digest();
+            expect(scope.counter).toBe(2);
+
+            scope.$digest();
+            expect(scope.counter).toBe(2);
+        });
+
+        it('notices when an attribute is changed in an object', () => {
+            scope.obj = { a: 1 };
+            scope.counter = 0;
+
+            scope.$watchCollection(
+                scope => scope.obj,
+                (newValue, oldValue, scope) => scope.counter++
+            );
+
+            scope.$digest();
+            expect(scope.counter).toBe(1);
+
+            scope.obj.a = 2;
+            scope.$digest();
+            expect(scope.counter).toBe(2);
+
+            scope.$digest();
+            expect(scope.counter).toBe(2);
+        });
+
+        it('does not fail on NaN attributes in object', () => {
+            scope.obj = { a: NaN };
+            scope.counter = 0;
+
+            scope.$watchCollection(
+                scope => scope.obj,
+                (newValue, oldValue, scope) => scope.counter++
+            );
+
+            scope.$digest();
+            expect(scope.counter).toBe(1);
+        });
     });
 });
