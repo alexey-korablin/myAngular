@@ -189,6 +189,12 @@ class Scope {
                             oldValue[key] = newVal;
                         }
                     });
+                    Object.keys(oldValue).forEach((key) => {
+                        if (!newValue.hasOwnProperty(key)) {
+                            changeCount++;
+                            delete oldValue[key];
+                        }
+                    });
                 }
             } else {
                 if (!this.$$areEqual(newValue, oldValue, false)) {
