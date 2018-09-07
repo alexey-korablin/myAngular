@@ -157,8 +157,10 @@ class Scope {
         let newValue;
         let oldValue;
         let changeCount = 0;
+        let oldLength;
         const internalWatchFn = (scope) => { 
             newValue = watchFn(scope);
+            let newLength;
             //Check for changes
             if (_.isObject(newValue)) {
                 if (isArrayLike(newValue)) {
@@ -181,20 +183,32 @@ class Scope {
                     if (!_.isObject(oldValue) || isArrayLike(oldValue)) {
                         changeCount++;
                         oldValue = {};
+                        oldLength = 0;
                     }
+                    newLength = 0;
                     _.forOwn(newValue, (newVal, key) => {
-                        const bothNaN = _.isNaN(newVal) && _.isNaN(oldValue[key]);
-                        if (!bothNaN && oldValue[key] !== newVal) {
+                        newLength++;
+                        if (oldValue.hasOwnProperty(key)) {
+                            const bothNaN = _.isNaN(newVal) && _.isNaN(oldValue[key]);
+                            if (!bothNaN && oldValue[key] !== newVal) {
+                                changeCount++;
+                                oldValue[key] = newVal;
+                            }
+                        } else {
                             changeCount++;
+                            oldLength++;
                             oldValue[key] = newVal;
                         }
                     });
-                    Object.keys(oldValue).forEach((key) => {
-                        if (!newValue.hasOwnProperty(key)) {
-                            changeCount++;
-                            delete oldValue[key];
-                        }
-                    });
+                    if (oldLength > newLength) {
+                        changeCount++;
+                        Object.keys(oldValue).forEach((key) => {
+                            if (!newValue.hasOwnProperty(key)) {
+                                oldLength--;
+                                delete oldValue[key];
+                            }
+                        });
+                    }
                 }
             } else {
                 if (!this.$$areEqual(newValue, oldValue, false)) {
