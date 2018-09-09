@@ -1394,5 +1394,22 @@ describe('Scope', function () {
             scope.$digest();
             expect(scope.counter).toBe(2);
         });
+
+        it('does not consider any object with a length property an array', () => {
+            scope.obj = { length: 42, otherKey: 'abc'};
+            scope.counter = 0;
+
+            scope.$watchCollection(
+                scope => scope.obj,
+                (newValue, oldValue, scope) => scope.counter++
+            );
+
+            scope.$digest();
+            expect(scope.counter).toBe(1);
+
+            scope.obj.newKey = 'def';
+            scope.$digest();
+            expect(scope.counter).toBe(2);
+        });
     });
 });
