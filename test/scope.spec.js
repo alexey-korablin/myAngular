@@ -1395,4 +1395,17 @@ describe('Scope', function () {
             expect(scope.counter).toBe(2);
         });
     });
+    describe('Events', () => {
+        let parent;
+        let child;
+        let scope;
+        let isolatedChild;
+
+        beforeEach(() => {
+            parent = new Scope();
+            scope = parent.$new();
+            child = scope.$new();
+            isolatedChild = scope.$new(true);
+        });
+    });
 });
