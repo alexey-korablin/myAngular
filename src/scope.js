@@ -24,6 +24,7 @@ class Scope {
         this.$$postDigestQueue = [];
         this.$$children = [];
         this.$root = this;
+        this.$$listeners = {};
     }
 
     $$postDigest(fn) {
@@ -326,9 +327,19 @@ class Scope {
         }
         parent.$$children.push(child);
         child.$$watchers = [];
+        child.$$listeners = {};
         child.$$children = [];
         child.$parent = parent;
         return child;
+    }
+
+    // events $on
+    $on(eventName, listener) {
+        let listeners = this.$$listeners[eventName];
+        if (!listeners) {
+            this.$$listeners[eventName] = listeners= [];
+        }
+        listeners.push(listener);
     }
 }
 

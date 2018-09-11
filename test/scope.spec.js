@@ -1424,5 +1424,34 @@ describe('Scope', function () {
             child = scope.$new();
             isolatedChild = scope.$new(true);
         });
+
+        it('allows registering listeners', () => {
+            const listener1 = () => {};
+            const listener2 = () => {};
+            const listener3 = () => {};
+
+            scope.$on('someEvent', listener1);
+            scope.$on('someEvent', listener2);
+            scope.$on('someOtherEvent', listener3);
+
+            expect(scope.$$listeners).toEqual({
+                'someEvent': [listener1, listener2],
+                'someOtherEvent': [listener3]
+            });
+        });
+
+        fit('register different listeners for every scope', () => {
+            const listener1 = () => {};
+            const listener2 = () => {};
+            const listener3 = () => {};
+
+            scope.$on('someEvent', listener1);
+            child.$on('someEvent', listener2);
+            isolatedChild.$on('someEvent', listener3);
+
+            expect(scope.$$listeners).toEqual({'someEvent': [listener1]});
+            expect(child.$$listeners).toEqual({'someEvent': [listener2]});
+            expect(isolatedChild.$$listeners).toEqual({'someEvent': [listener3]});
+        });
     });
 });
