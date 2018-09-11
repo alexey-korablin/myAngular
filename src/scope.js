@@ -8,7 +8,9 @@ const isArrayLike = (obj) => {
     if (_.isNull(obj) || _.isUndefined(obj)) {
         return false;
     }
-    return _.isNumber(obj.length);
+
+    const length = obj.length;
+    return length === 0 || (_.isNumber(obj.length) && length > 0 && (length - 1) in obj);
 };
 
 class Scope {
