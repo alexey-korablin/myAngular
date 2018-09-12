@@ -1440,7 +1440,7 @@ describe('Scope', function () {
             });
         });
 
-        fit('register different listeners for every scope', () => {
+        it('register different listeners for every scope', () => {
             const listener1 = () => {};
             const listener2 = () => {};
             const listener3 = () => {};
@@ -1452,6 +1452,32 @@ describe('Scope', function () {
             expect(scope.$$listeners).toEqual({'someEvent': [listener1]});
             expect(child.$$listeners).toEqual({'someEvent': [listener2]});
             expect(isolatedChild.$$listeners).toEqual({'someEvent': [listener3]});
+        });
+
+        it('calls the listeners of the matching event on $emit', () => {
+            const listener1 = jasmine.createSpy();
+            const listener2 = jasmine.createSpy();
+            
+            scope.$on('someEvent', listener1);
+            scope.$on('someOtherEvent', listener2);
+
+            scope.$emit('someEvent');
+
+            expect(listener1).toHaveBeenCalled();
+            expect(listener2).not.toHaveBeenCalled();
+        });
+
+        it('calls the listeners of the matching event on $broadcast', () => {
+            const listener1 = jasmine.createSpy();
+            const listener2 = jasmine.createSpy();
+            
+            scope.$on('someEvent', listener1);
+            scope.$on('someOtherEvent', listener2);
+
+            scope.$broadcast('someEvent');
+
+            expect(listener1).toHaveBeenCalled();
+            expect(listener2).not.toHaveBeenCalled();
         });
     });
 });

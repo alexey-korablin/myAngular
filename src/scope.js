@@ -341,6 +341,16 @@ class Scope {
         }
         listeners.push(listener);
     }
+
+    $emit(event) {
+        const listeners = this.$$listeners[event] || [];
+        _.forEach(listeners, (listener) => listener());
+    }
+
+    $broadcast(event) {
+        const listeners = this.$$listeners[event] || [];
+        _.forEach(listeners, (listener) => listener());
+    }
 }
 
 module.exports = Scope;
