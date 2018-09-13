@@ -1454,30 +1454,19 @@ describe('Scope', function () {
             expect(isolatedChild.$$listeners).toEqual({'someEvent': [listener3]});
         });
 
-        it('calls the listeners of the matching event on $emit', () => {
-            const listener1 = jasmine.createSpy();
-            const listener2 = jasmine.createSpy();
-            
-            scope.$on('someEvent', listener1);
-            scope.$on('someOtherEvent', listener2);
-
-            scope.$emit('someEvent');
-
-            expect(listener1).toHaveBeenCalled();
-            expect(listener2).not.toHaveBeenCalled();
-        });
-
-        it('calls the listeners of the matching event on $broadcast', () => {
-            const listener1 = jasmine.createSpy();
-            const listener2 = jasmine.createSpy();
-            
-            scope.$on('someEvent', listener1);
-            scope.$on('someOtherEvent', listener2);
-
-            scope.$broadcast('someEvent');
-
-            expect(listener1).toHaveBeenCalled();
-            expect(listener2).not.toHaveBeenCalled();
+        _.forEach(['$emit', '$broadcast'], (method) => {
+            it(`calls the listeners of the matching event on ${method}`, () => {
+                const listener1 = jasmine.createSpy();
+                const listener2 = jasmine.createSpy();
+                
+                scope.$on('someEvent', listener1);
+                scope.$on('someOtherEvent', listener2);
+    
+                scope[method]('someEvent');
+    
+                expect(listener1).toHaveBeenCalled();
+                expect(listener2).not.toHaveBeenCalled();
+            });
         });
     });
 });

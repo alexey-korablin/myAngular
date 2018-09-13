@@ -342,14 +342,17 @@ class Scope {
         listeners.push(listener);
     }
 
-    $emit(event) {
+    $$fireEventOnScope(event) {
         const listeners = this.$$listeners[event] || [];
         _.forEach(listeners, (listener) => listener());
     }
 
+    $emit(event) {
+        this.$$fireEventOnScope(event);
+    }
+
     $broadcast(event) {
-        const listeners = this.$$listeners[event] || [];
-        _.forEach(listeners, (listener) => listener());
+        this.$$fireEventOnScope(event);
     }
 }
 
