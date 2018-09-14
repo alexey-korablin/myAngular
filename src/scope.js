@@ -342,17 +342,18 @@ class Scope {
         listeners.push(listener);
     }
 
-    $$fireEventOnScope(event) {
-        const listeners = this.$$listeners[event] || [];
-        _.forEach(listeners, (listener) => listener());
+    $$fireEventOnScope(eventName) {
+        const event = {name: eventName};
+        const listeners = this.$$listeners[eventName] || [];
+        _.forEach(listeners, (listener) => listener(event));
     }
 
-    $emit(event) {
-        this.$$fireEventOnScope(event);
+    $emit(eventName) {
+        this.$$fireEventOnScope(eventName);
     }
 
-    $broadcast(event) {
-        this.$$fireEventOnScope(event);
+    $broadcast(eventName) {
+        this.$$fireEventOnScope(eventName);
     }
 }
 

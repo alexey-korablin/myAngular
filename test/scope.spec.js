@@ -1467,6 +1467,32 @@ describe('Scope', function () {
                 expect(listener1).toHaveBeenCalled();
                 expect(listener2).not.toHaveBeenCalled();
             });
+
+            it(`passes an event object with a name to listeners on ${method}`, () => {
+                const listener = jasmine.createSpy();
+
+                scope.$on('someEvent', listener);
+
+                scope[method]('someEvent');
+
+                expect(listener).toHaveBeenCalled();
+                expect(listener.calls.mostRecent().args[0].name).toBe('someEvent');
+            });
+
+            it(`passes the same event object to each listener on ${method}`, () => {
+                const listener1 = jasmine.createSpy();
+                const listener2 = jasmine.createSpy();
+
+                scope.$on('someEvent', listener1);
+                scope.$on('someEvent', listener2);
+
+                scope[method]('someEvent');
+
+                const event1 = listener1.calls.mostRecent().args[0];
+                const event2 = listener2.calls.mostRecent().args[0];
+
+                expect(event1).toBe(event2);
+            });
         });
     });
 });
