@@ -342,18 +342,21 @@ class Scope {
         listeners.push(listener);
     }
 
-    $$fireEventOnScope(eventName) {
+    $$fireEventOnScope(eventName, additionalArgs) {
         const event = {name: eventName};
+        const listenerArgs = [event].concat(additionalArgs);
         const listeners = this.$$listeners[eventName] || [];
-        _.forEach(listeners, (listener) => listener(event));
+        _.forEach(listeners, (listener) => listener.apply(null, listenerArgs));
     }
 
     $emit(eventName) {
-        this.$$fireEventOnScope(eventName);
+        const additionalArgs = Object.keys(arguments).map(e => e > 0 ? arguments[e] : false).filter(e => e);
+        this.$$fireEventOnScope(eventName, additionalArgs);
     }
 
     $broadcast(eventName) {
-        this.$$fireEventOnScope(eventName);
+        const additionalArgs = Object.keys(arguments).map(e => e > 0 ? arguments[e] : false).filter(e => e);
+        this.$$fireEventOnScope(eventName, additionalArgs);
     }
 }
 
