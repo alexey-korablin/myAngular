@@ -1505,6 +1505,13 @@ describe('Scope', function () {
                 expect(listener.calls.mostRecent().args[2]).toEqual(['additional', 'arguments']);
                 expect(listener.calls.mostRecent().args[3]).toEqual('...');
             });
+
+            it(`return the event object on ${method}`, () => {
+                const returnedEvent = scope[method]('someEvent');
+
+                expect(returnedEvent).toBeDefined();
+                expect(returnedEvent.name).toBe('someEvent');
+            });
         });
     });
 });
