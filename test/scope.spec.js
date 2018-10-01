@@ -1536,5 +1536,18 @@ describe('Scope', function () {
                 expect(nextListener).toHaveBeenCalled();
             });
         });
+
+        it('propagate up the the scope hierarchy on $emit', () => {
+            const parentListener = jasmine.createSpy();
+            const scopeListener = jasmine.createSpy();
+
+            parent.$on('someEvent', parentListener);
+            scope.$on('someEvent', scopeListener);
+
+            scope.$emit('someEvent');
+
+            expect(parentListener).toHaveBeenCalled();
+            expect(scopeListener).toHaveBeenCalled();
+        });
     });
 });

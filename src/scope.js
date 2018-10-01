@@ -348,9 +348,7 @@ class Scope {
         };
     }
 
-    $$fireEventOnScope(eventName, additionalArgs) {
-        const event = {name: eventName};
-        const listenerArgs = [event].concat(additionalArgs);
+    $$fireEventOnScope(eventName, listenerArgs) {
         const listeners = this.$$listeners[eventName] || [];
         let i = 0;
         while (i < listeners.length) {
@@ -361,17 +359,24 @@ class Scope {
                 i++;
             }
         }
-        return event;
     }
 
     $emit(eventName) {
-        const additionalArgs = Object.keys(arguments).map(e => e > 0 ? arguments[e] : false).filter(e => e);
-        return this.$$fireEventOnScope(eventName, additionalArgs);
+        const event = { name: eventName };
+        const listenerArgs = [event].concat(Object.keys(arguments).map(e => e > 0 ? arguments[e] : false).filter(e => e));
+        let scope = this;
+        do {
+            scope.$$fireEventOnScope(eventName, listenerArgs);
+            scope = scope.$parent;
+        } while (scope);
+        return event;
     }
 
     $broadcast(eventName) {
-        const additionalArgs = Object.keys(arguments).map(e => e > 0 ? arguments[e] : false).filter(e => e);
-        return this.$$fireEventOnScope(eventName, additionalArgs);
+        const event = { name: eventName };
+        const listenerArgs = [event].concat(Object.keys(arguments).map(e => e > 0 ? arguments[e] : false).filter(e => e));
+        this.$$fireEventOnScope(eventName, listenerArgs);
+        return event;
     }
 }
 
