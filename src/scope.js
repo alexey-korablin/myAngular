@@ -340,13 +340,27 @@ class Scope {
             this.$$listeners[eventName] = listeners= [];
         }
         listeners.push(listener);
+        return () => {
+            const index = listeners.indexOf(listener);
+            if (index > -1) {
+                listeners[index] = null;
+            }
+        };
     }
 
     $$fireEventOnScope(eventName, additionalArgs) {
         const event = {name: eventName};
         const listenerArgs = [event].concat(additionalArgs);
         const listeners = this.$$listeners[eventName] || [];
-        _.forEach(listeners, (listener) => listener.apply(null, listenerArgs));
+        let i = 0;
+        while (i < listeners.length) {
+            if (listeners[i] === null) {
+                listeners.splice(i, 1);
+            } else {
+                listeners[i].apply(null, listenerArgs);
+                i++;
+            }
+        }
         return event;
     }
 

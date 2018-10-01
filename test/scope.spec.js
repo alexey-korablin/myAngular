@@ -1512,6 +1512,29 @@ describe('Scope', function () {
                 expect(returnedEvent).toBeDefined();
                 expect(returnedEvent.name).toBe('someEvent');
             });
+
+            it(`can be derigistered ${method}`, () => {
+                const listener = jasmine.createSpy();
+                const deregister = scope.$on('someEvent', listener);
+
+                deregister();
+                scope[method]('someEvent');
+
+                expect(listener).not.toHaveBeenCalled();
+            });
+
+            it(`does not skip the next listener when removed on ${method}`, () => {
+                let deregister;
+                const listener = () => deregister();
+
+                const nextListener = jasmine.createSpy();
+                deregister = scope.$on('someEvent', listener);
+                scope.$on('someEvent', nextListener);
+
+                scope[method]('someEvent');
+
+                expect(nextListener).toHaveBeenCalled();
+            });
         });
     });
 });
