@@ -1549,5 +1549,20 @@ describe('Scope', function () {
             expect(parentListener).toHaveBeenCalled();
             expect(scopeListener).toHaveBeenCalled();
         });
+
+        it('propagates the same event up on $emit', () => {
+            const parentListener = jasmine.createSpy();
+            const scopeListener = jasmine.createSpy();
+
+            parent.$on('someEvent', parentListener);
+            scope.$on('someEvent', scopeListener);
+
+            scope.$emit('someEvent');
+
+            const scopeEvent = scopeListener.calls.mostRecent().args[0];
+            const parentEvent = parentListener.calls.mostRecent().args[0];
+
+            expect(scopeEvent).toBe(parentEvent);
+        });
     });
 });
