@@ -375,7 +375,11 @@ class Scope {
     $broadcast(eventName) {
         const event = { name: eventName };
         const listenerArgs = [event].concat(Object.keys(arguments).map(e => e > 0 ? arguments[e] : false).filter(e => e));
-        this.$$fireEventOnScope(eventName, listenerArgs);
+        this.$$everyScope(scope => {
+            scope.$$fireEventOnScope(eventName, listenerArgs);
+            return true;
+        });
+        // this.$$fireEventOnScope(eventName, listenerArgs);
         return event;
     }
 }
