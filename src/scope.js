@@ -362,24 +362,27 @@ class Scope {
     }
 
     $emit(eventName) {
-        const event = { name: eventName };
+        const event = { name: eventName, targetScope: this };
         const listenerArgs = [event].concat(Object.keys(arguments).map(e => e > 0 ? arguments[e] : false).filter(e => e));
         let scope = this;
         do {
+            event.currentScope = scope;
             scope.$$fireEventOnScope(eventName, listenerArgs);
             scope = scope.$parent;
         } while (scope);
+        event.currentScope = null;
         return event;
     }
 
     $broadcast(eventName) {
-        const event = { name: eventName };
+        const event = { name: eventName, targetScope: this };
         const listenerArgs = [event].concat(Object.keys(arguments).map(e => e > 0 ? arguments[e] : false).filter(e => e));
         this.$$everyScope(scope => {
+            event.currentScope = scope;
             scope.$$fireEventOnScope(eventName, listenerArgs);
             return true;
         });
-        // this.$$fireEventOnScope(eventName, listenerArgs);
+        event.currentScope = null;
         return event;
     }
 }
