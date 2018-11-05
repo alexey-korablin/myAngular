@@ -366,7 +366,8 @@ class Scope {
         const event = { 
             name: eventName, 
             targetScope: this,
-            stopPropagation: () => propagationStopped = true
+            stopPropagation: () => propagationStopped = true,
+            preventDefault: () => event.defaultPrevented = true
         };
         const listenerArgs = [event].concat(Object.keys(arguments).map(e => e > 0 ? arguments[e] : false).filter(e => e));
         let scope = this;
@@ -380,7 +381,11 @@ class Scope {
     }
 
     $broadcast(eventName) {
-        const event = { name: eventName, targetScope: this };
+        const event = { 
+            name: eventName,
+            targetScope: this,
+            preventDefault: () => event.defaultPrevented = true
+        };
         const listenerArgs = [event].concat(Object.keys(arguments).map(e => e > 0 ? arguments[e] : false).filter(e => e));
         this.$$everyScope(scope => {
             event.currentScope = scope;

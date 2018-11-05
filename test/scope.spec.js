@@ -1453,7 +1453,7 @@ describe('Scope', function () {
             expect(child.$$listeners).toEqual({'someEvent': [listener2]});
             expect(isolatedChild.$$listeners).toEqual({'someEvent': [listener3]});
         });
-
+        
         _.forEach(['$emit', '$broadcast'], (method) => {
             it(`calls the listeners of the matching event on ${method}`, () => {
                 const listener1 = jasmine.createSpy();
@@ -1696,6 +1696,18 @@ describe('Scope', function () {
             scope.$emit('someEvent');
 
             expect(listener2).toHaveBeenCalled();
+        });
+
+        _.forEach(['$emit', '$broadcast'], (method) => {
+            it(`is sets defaultPrevented when preventDefault called on ${method}`, () => {
+                const listener = (event) => event.preventDefault();
+
+                scope.$on('someEvent', listener);
+
+                const event = scope[method]('someEvent');
+
+                expect(event.defaultPrevented).toBe(true);
+            });
         });
     });
 });
