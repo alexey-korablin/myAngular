@@ -362,14 +362,19 @@ class Scope {
     }
 
     $emit(eventName) {
-        const event = { name: eventName, targetScope: this };
+        let propagationStopped = false;
+        const event = { 
+            name: eventName, 
+            targetScope: this,
+            stopPropagation: () => propagationStopped = true
+        };
         const listenerArgs = [event].concat(Object.keys(arguments).map(e => e > 0 ? arguments[e] : false).filter(e => e));
         let scope = this;
         do {
             event.currentScope = scope;
             scope.$$fireEventOnScope(eventName, listenerArgs);
             scope = scope.$parent;
-        } while (scope);
+        } while (scope && !propagationStopped);
         event.currentScope = null;
         return event;
     }

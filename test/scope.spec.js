@@ -1673,5 +1673,29 @@ describe('Scope', function () {
 
             expect(event.currentScope).toBe(null);
         });
+
+        it('does not propagate to parents when stopped', () => {
+            const scopeListener = (event) => event.stopPropagation();
+            const parentListener = jasmine.createSpy();
+
+            scope.$on('someEvent', scopeListener);
+            parent.$on('someEvent', parentListener);
+
+            scope.$emit('someEvent');
+
+            expect(parentListener).not.toHaveBeenCalled();
+        });
+
+        it('is received by listeners on current scope after being stopped', () => {
+            const listener1 = event => event.stopPropagation();
+            const listener2 = jasmine.createSpy();
+
+            scope.$on('someEvent', listener1);
+            scope.$on('someEvent', listener2);
+
+            scope.$emit('someEvent');
+
+            expect(listener2).toHaveBeenCalled();
+        });
     });
 });
