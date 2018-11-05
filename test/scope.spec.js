@@ -1709,5 +1709,24 @@ describe('Scope', function () {
                 expect(event.defaultPrevented).toBe(true);
             });
         });
+
+        it('fire $destroy when destryed', () => {
+            const listener = jasmine.createSpy();
+
+            scope.$on('$destroy', listener);
+
+            scope.$destroy();
+
+            expect(listener).toHaveBeenCalled();
+        });
+
+        it('fires $destroy on children destroyed', () => {
+            const listener = jasmine.createSpy();
+            child.$on('$destroy', listener);
+
+            scope.$destroy();
+
+            expect(listener).toHaveBeenCalled();
+        });
     });
 });

@@ -300,6 +300,7 @@ class Scope {
 
     // inheritance. $new()
     $destroy() {
+        this.$broadcast('$destroy');
         if (this.$parent) {
             const siblings = this.$parent.$$children;
             const indexOfThis = siblings.indexOf(this);
