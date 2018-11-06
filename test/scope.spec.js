@@ -1535,6 +1535,30 @@ describe('Scope', function () {
 
                 expect(nextListener).toHaveBeenCalled();
             });
+
+            it(`is sets defaultPrevented when preventDefault called on ${method}`, () => {
+                const listener = (event) => event.preventDefault();
+
+                scope.$on('someEvent', listener);
+
+                const event = scope[method]('someEvent');
+
+                expect(event.defaultPrevented).toBe(true);
+            });
+
+            it(`does not stop on exceptions on ${method}`, () => {
+                const listener1 = (event) => {
+                    throw 'listener1 throw an exception';
+                };
+                const listener2 = jasmine.createSpy();
+
+                scope.$on('someEvent', listener1);
+                scope.$on('someEvent', listener2);
+
+                scope[method]('someEvent');
+
+                expect(listener2).toHaveBeenCalled();
+            });
         });
 
         it('propagate up the the scope hierarchy on $emit', () => {
