@@ -309,6 +309,7 @@ class Scope {
             }
         }
         this.$$watchers = null;
+        this.$$listeners = {};
     }
 
     $new(isolated, parent) {
