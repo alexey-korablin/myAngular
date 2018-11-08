@@ -34,14 +34,29 @@ class Lexer {
         return this.index < this.text.length - 1 ? this.text.charAt(this.index + 1) : false;
     }
 
+    isExpOperator(ch) {
+        return ch === '-' || ch === '+' || this.isNumber(ch);
+    }
+
     readNumber() {
         let number = '';
+        const numberAttrs = ['-', '+', 'e', '.'];
         while (this.index < this.text.length) {
-            const ch = this.text.charAt(this.index);
+            const ch = this.text.charAt(this.index).toLowerCase();
             if (this.isNumber(ch) || ch === '.') {
                 number += ch;
             } else {
-                break;
+                const nextCh = this.peek();
+                const prevCh = number.charAt(number.length - 1);
+                if (ch === 'e' && this.isExpOperator(nextCh)) {
+                    number += ch;
+                } else if (this.isExpOperator(ch) && prevCh === 'e' && nextCh && this.isNumber(nextCh)) {
+                    number += ch;
+                } else if (this.isExpOperator(ch) && prevCh === 'e' && !nextCh && !this.isNumber(nextCh)) {
+                    throw 'Invalid exponent';
+                } else {
+                    break;
+                }
             }
             this.index++;
         }
