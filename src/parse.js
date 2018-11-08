@@ -16,7 +16,7 @@ class Lexer {
 
         while (this.index < this.text.length) {
             this.ch = this.text.charAt(this.index);
-            if (this.isNumber(this.ch)) {
+            if (this.isNumber(this.ch) || (this.ch === '.' && this.isNumber(this.peek()))) {
                 this.readNumber();
             } else {
                 throw `Unexpected next chracter ${this.ch}`;
@@ -30,11 +30,15 @@ class Lexer {
         return '0' <= ch && ch <= '9';
     }
 
+    peek() {
+        return this.index < this.text.length - 1 ? this.text.charAt(this.index + 1) : false;
+    }
+
     readNumber() {
         let number = '';
         while (this.index < this.text.length) {
             const ch = this.text.charAt(this.index);
-            if (this.isNumber(ch)) {
+            if (this.isNumber(ch) || ch === '.') {
                 number += ch;
             } else {
                 break;
