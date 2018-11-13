@@ -1,5 +1,16 @@
 'use strict';
 
+const _ = require('lodash');
+const ESCAPES = {
+    'n': '\n',
+    'f': '\f',
+    'r': '\r',
+    't': '\t',
+    'v': '\v',
+    '\'': '\'',
+    '"': '"'
+};
+
 function parse(expr) {
     const lexer = new Lexer();
     const parser = new Parser(lexer);
@@ -18,6 +29,8 @@ class Lexer {
             this.ch = this.text.charAt(this.index);
             if (this.isNumber(this.ch) || (this.ch === '.' && this.isNumber(this.peek()))) {
                 this.readNumber();
+            } else if (this.ch === '\'' || this.ch === '"') {
+                this.readString(this.ch);
             } else {
                 throw `Unexpected next chracter ${this.ch}`;
             }
@@ -38,9 +51,48 @@ class Lexer {
         return ch === '-' || ch === '+' || this.isNumber(ch);
     }
 
+    readString(quote) {
+        this.index++;
+        let string = '';
+        let escape = false;
+        while (this.index < this.text.length) {
+            const ch = this.text.charAt(this.index);
+            if (escape) {
+                if (ch === 'u') {
+                    const hex = this.text.substring(this.index + 1, this.index + 5);
+                    if (!hex.match(/[\da-f]{4}/i)) {
+                        throw 'Invalid unicode escape';
+                    }
+                    this.index += 4;
+                    string += String.fromCharCode(parseInt(hex, 16));
+                } else {
+                    const replacement = ESCAPES[ch];
+                    if (replacement) {
+                        string += replacement;
+                    } else {
+                        string += ch;
+                    }
+                }
+                escape = false;
+            } else if (ch === quote) {
+                this.index++;
+                this.tokens.push({
+                    text: string,
+                    value: string
+                });
+                return;
+            } else if (ch === '\\') {
+                escape = true;
+            } else {
+                string += ch;
+            }
+            this.index++;
+        }
+        throw 'Unmatched quote';
+    }
+
     readNumber() {
         let number = '';
-        const numberAttrs = ['-', '+', 'e', '.'];
         while (this.index < this.text.length) {
             const ch = this.text.charAt(this.index).toLowerCase();
             if (this.isNumber(ch) || ch === '.') {
@@ -97,6 +149,19 @@ class AST {
 class ASTCompiller {
     constructor(astBuilder) {
         this.astBuilder = astBuilder;
+        this.stringEscapeRegex = /[^ a-zA-Z0-9]/g;
+    }
+
+    stringEscapeFn(c) {
+        return '\\u' + ('0000' + c.charCodeAt(0).toString(16)).slice(-4);
+    }
+
+    escape(value) {
+        if (_.isString(value)) {
+            return '\'' + value.replace(this.stringEscapeRegex, this.stringEscapeFn) + '\'';
+        } else {
+            return value;
+        }
     }
 
     compile(text) {
@@ -113,7 +178,7 @@ class ASTCompiller {
                 break;
 
             case AST.Literal:
-                return ast.value;
+                return this.escape(ast.value);
         }
     }
 }
