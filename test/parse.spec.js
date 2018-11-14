@@ -91,5 +91,10 @@ describe('parse #', function() {
     it('will parse false', () => {
         const fn = parse('false');
         expect(fn()).toBe(false);
-    }); 
+    });
+
+    it('ignores whitespace', () => {
+        const fn = parse(' \n42 ');
+        expect(fn()).toEqual(42);
+    });
 });

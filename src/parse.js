@@ -33,12 +33,20 @@ class Lexer {
                 this.readString(this.ch);
             } else if (this.isIdent(this.ch)) {
                 this.readIdent();
+            } else if (this.isWhitspace(this.ch)) {
+                this.index++;
             } else {
                 throw `Unexpected next chracter ${this.ch}`;
             }
         }
 
         return this.tokens;
+    }
+
+    isWhitspace(ch) {
+        return ch === ' ' || ch === '\r' ||
+        ch === '\t' || ch === '\n' ||
+        ch === '\v' || ch === '\u00A0';
     }
 
     isIdent(ch) {
