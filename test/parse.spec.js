@@ -97,4 +97,14 @@ describe('parse #', function() {
         const fn = parse(' \n42 ');
         expect(fn()).toEqual(42);
     });
+
+    it('will parse an empty array', () => {
+        const fn = parse('[]');
+        expect(fn()).toEqual([]);
+    });
+
+    it('will parse non empty array', () => {
+        const fn = parse('[1, "two", [3], true]');
+        expect(fn()).toEqual([1, 'two', [3], true]);
+    });
 });
