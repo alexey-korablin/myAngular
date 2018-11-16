@@ -27,11 +27,11 @@ class Lexer {
 
         while (this.index < this.text.length) {
             this.ch = this.text.charAt(this.index);
-            if (this.isNumber(this.ch) || (this.ch === '.' && this.isNumber(this.peek()))) {
+            if (this.isNumber(this.ch) || (this.is('.') && this.isNumber(this.peek()))) {
                 this.readNumber();
-            } else if (this.ch === '\'' || this.ch === '"') {
+            } else if (this.is('\'"')) {
                 this.readString(this.ch);
-            }  else if (this.ch === '[' || this.ch === ']' ||  this.ch === ',') {
+            }  else if (this.is('[],{}:')) {
                 this.tokens.push({
                     text: this.ch
                 });
@@ -46,6 +46,10 @@ class Lexer {
         }
 
         return this.tokens;
+    }
+
+    is(chs) {
+        return chs.indexOf(this.ch) !== -1;
     }
 
     isWhitspace(ch) {
@@ -172,6 +176,8 @@ class AST {
     primary() {
         if (this.expect('[')) {
             return this.arrayDeclaration();
+        } else if (this.expect('{')) {
+            return this.object();
         } else if (this.constants.hasOwnProperty(this.tokens[0].text)) {
             return this.constants[this.consume().text];
         } else {
@@ -194,7 +200,7 @@ class AST {
             } while (this.expect(','));
         }
         this.consume(']');
-        return { type: AST.ArrayExpression, elements: elements };
+        return { type: AST.ArrayExpression, elements };
     }
 
     peek(e) {
@@ -214,6 +220,21 @@ class AST {
         return token;
     }
 
+    object() {
+        const properties = [];
+        if (!this.peek('}')) {
+            do {
+                const property = { type: AST.Property };
+                property.key = this.constant();
+                this.consume(':');
+                property.value = this.primary;
+                properties.push(property);
+            } while (this.expect(','));
+        }
+        this.consume('}');
+        return { type: AST.ObjectExpression, properties };
+    }
+
     constant() {
         return { type: AST.Literal, value: this.consume().value };
     }
@@ -228,6 +249,14 @@ class AST {
 
     static get ArrayExpression() {
         return 'ArrayExpression';
+    }
+
+    static get ObjectExpression() {
+        return 'ObjectExpression';
+    }
+
+    static get Property() {
+        return 'Property';
     }
 
     get constants() {
@@ -282,6 +311,14 @@ class ASTCompiller {
                     this
                 );
                 return `[${elements.join(',')}]`;
+            
+            case AST.ObjectExpression:
+                    const properties = _.map(
+                        ast.properties,
+                        (property => this.recurse(property)),
+                        this
+                    );
+                    return `{${properties.join(',')}}`;
         }
     }
 }
