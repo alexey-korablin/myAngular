@@ -18,4 +18,14 @@ describe('setupModuleLoader', function() {
         setupModuleLoader(window);
         expect(ng).toBe(window.angular);
     });
+    it('exposes the angular module function', () => {
+        setupModuleLoader(window);
+        expect(window.angular.module).toBeDefined();
+    });
+    it('exposes the angular module function just once', () => {
+        setupModuleLoader(window);
+        const module = window.angular.module;
+        setupModuleLoader(window);
+        expect(window.angular.module).toBe(module);
+    });
 });
