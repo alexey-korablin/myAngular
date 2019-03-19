@@ -121,4 +121,16 @@ describe('injector', function() {
 
         expect(injector.invoke(fn, null, {'b': 3})).toBe(4);
     });
+
+    describe('annotate', () => {
+
+        it('returns the $inject annotation of a function when it has one', () => {
+            const injector = createInjector([]);
+
+            const fn = () => {};
+            fn.$inject = ['a', 'b'];
+
+            expect(injector.annotate(fn)).toEqual(['a', 'b']);
+        });
+    });
 });
