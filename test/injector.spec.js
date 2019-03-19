@@ -110,4 +110,15 @@ describe('injector', function() {
 
         expect(injector.invoke(obj.fn, obj)).toBe(3);
     });
+    it('overrides dependencies with locals when invoking', () => {
+        const module = window.angular.module('myModule', []);
+        module.constant('a', 1);
+        module.constant('b', 2);
+        const injector = createInjector(['myModule']);
+
+        const fn = (one, two) => one + two;
+        fn.$inject = ['a', 'b'];
+
+        expect(injector.invoke(fn, null, {'b': 3})).toBe(4);
+    });
 });
