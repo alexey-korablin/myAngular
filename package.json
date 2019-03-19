@@ -9,7 +9,7 @@
   "scripts": {
     "lint": "jshint src",
     "test": "karma start",
-    "push": "git push -u origin master"
+    "push": "git push -u origin DI"
   },
   "repository": {
     "type": "git",
