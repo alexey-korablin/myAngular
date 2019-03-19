@@ -1,7 +1,9 @@
 'use strict';
 
 function setupModuleLoader(window) {
-    const angular = (window.angular = window.angular | {});
+    const ensure = (obj, name, factory) => obj[name] || (obj[name] = factory());
+
+    const angular = ensure(window, 'angular', Object);
 }
 
 module.exports = setupModuleLoader;
