@@ -132,5 +132,37 @@ describe('injector', function() {
 
             expect(injector.annotate(fn)).toEqual(['a', 'b']);
         });
+        it('returns an empty array for a non-annotated 0-arg funciton', () => {
+            const injector = createInjector([]);
+            const fn = () => {};
+            expect(injector.annotate(fn)).toEqual([]);
+        });
+        it('returns annotations parsed from function args when not annotated', () => {
+            const injector = createInjector([]);
+            const fn = (a, b) => {};
+            expect(injector.annotate(fn)).toEqual(['a', 'b']);
+        });
+        it('strips comments from argument lists when parsing', () => {
+            const injector = createInjector([]);
+            const fn = (a, /*b,*/ c) => {};
+            expect(injector.annotate(fn)).toEqual(['a', 'c']);
+        });
+        it('strip several comments from argument lists when parsing', () => {
+            const injector = createInjector([]);
+            const fn = (a, /*b,*/ c/*, d*/) => {};
+            expect(injector.annotate(fn)).toEqual(['a', 'c']);
+        });
+        it('strip // comments from argument lists when parsing', () => {
+            const injector = createInjector([]);
+            const fn = (a, 
+                //b
+                 c) => {};
+            expect(injector.annotate(fn)).toEqual(['a', 'c']);
+        });
+        it('strips surroundin underscores from argument names when parsing', () => {
+            const injector = createInjector([]);
+            const fn = (a, _b_, c_, _d, an_argument) => {};
+            expect(injector.annotate(fn)).toEqual(['a', 'b', 'c_', '_d', 'an_argument']);
+        });
     });
 });
