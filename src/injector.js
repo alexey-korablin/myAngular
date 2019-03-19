@@ -5,9 +5,10 @@ const FN_ARGS = /^function\s*[^\()]*\(\s*([^\)]*)\)/m;
 const FN_ARG = /^\s*(_?)(\S+?)\1\s*$/;
 const STRIP_COMMENTS = /(\/\/.*$)|\/\*.*?\*\//mg;
 
-function createInjector(modulesToLoad) {
+function createInjector(modulesToLoad, strictDI) {
     const cache = {};
     const loadedModules = {};
+    strictDI = (strictDI === true);
     const $provide = {
         constant: function (key, value) {
             if ( key === 'hasOwnProperty' ) { throw 'hasOwnProperty is not valid constant name!'; }
@@ -23,6 +24,9 @@ function createInjector(modulesToLoad) {
         } else if (!fn.length) {
             return [];
         } else {
+            if (strictDI) {
+                throw 'fn is not using explicit annotation and cannot be invoked in strict mode';
+            }
             const source = fn.toString().replace(STRIP_COMMENTS, '');
             const argDeclaration = source.match(FN_ARGS);
             return _.map(argDeclaration[1].split(','), (argName) =>  argName.match(FN_ARG)[2]);
