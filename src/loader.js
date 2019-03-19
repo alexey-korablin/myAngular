@@ -18,7 +18,7 @@ function setupModuleLoader(window) {
         } else {
             throw `Module ${name} is not available!`;
         }
-    }
+    };
 
     ensure(angular, 'module', function () {
         const modules = {};
