@@ -171,5 +171,25 @@ describe('injector', function() {
                 injector.annotate(fn);
             }).toThrow();
         });
+        it('invokes an array-annotated function with dependency injection', () => {
+            const module = window.angular.module('myModule', []);
+            module.constant('a', 1);
+            module.constant('b', 2);
+            const injector = createInjector(['myModule']);
+
+            const fn = ['a', 'b', function (one, two) { return one + two; }];
+
+            expect(injector.invoke(fn)).toBe(3);
+        });
+        it('invokes a non-annotated function with dependency injection', () => {
+            const module = window.angular.module('myModule', []);
+            module.constant('a', 1);
+            module.constant('b', 2);
+            const injector = createInjector(['myModule']);
+
+            const fn = (a, b) => a + b;
+
+            expect(injector.invoke(fn)).toBe(3);
+        });
     });
 });
