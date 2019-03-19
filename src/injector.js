@@ -16,6 +16,13 @@ function createInjector(modulesToLoad, strictDI) {
         }
     };
 
+    function instantiate(Type, locals) {
+        const UnwrippedType = _.isArray(Type) ? _.last(Type) : Type;
+        const instance = Object.create(UnwrippedType.prototype);
+        invoke(Type, instance, locals);
+        return instance;
+    }
+
     function annotate(fn) {
         if (_.isArray(fn)) {
             return fn.slice(0, fn.length - 1);
@@ -64,7 +71,8 @@ function createInjector(modulesToLoad, strictDI) {
         has: function (key) { return cache.hasOwnProperty(key); },
         get: function (key) { return cache[key]; },
         invoke,
-        annotate
+        annotate,
+        instantiate
     };
 }   
 
