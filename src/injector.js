@@ -13,7 +13,13 @@ function createInjector(modulesToLoad) {
     };
 
     function invoke(fn) {
-        const args = _.map(fn.$inject, (token) => cache[token]);
+        const args = _.map(fn.$inject, (token) => {
+            if (_.isString(token)) {
+                return cache[token];
+            } else {
+                throw `Incorrect injection token! Expected a string, got ${token}`;
+            }
+        });
         return fn.apply(null, args);
     }
 
