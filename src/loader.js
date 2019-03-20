@@ -8,7 +8,7 @@ function setupModuleLoader(window) {
     const createModule = (name, requires, modules) => {
         if  (name === 'hasOwnProperty') { throw 'hasOwnProperty is not valid module name'; }
         const invokeQueue = [];
-        const invokeLater = (method) => {
+        const invokeLater = function (method) {
             return function () {
                 invokeQueue.push([method, arguments]);
                 return moduleInstance;

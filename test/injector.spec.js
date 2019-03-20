@@ -293,12 +293,30 @@ describe('injector', function() {
             const injector = createInjector(['myModule']);
             expect(injector.get('b')).toBe(3);
         });
-        // The test does not fall in Chrome!
         it('instantiates a dependency only once', () => {
             const module = window.angular.module('myModule', []);
             module.provider('a', { $get: function () { return {}; }});
             const injector = createInjector(['myModule']);
             expect(injector.get('a')).toBe(injector.get('a'));
+        });
+        it('notifies the user about a circular dependency', () => {
+            const module = window.angular.module('myModule', []);
+            module.provider('a1', { $get: function (b1) {}});
+            module.provider('b1', { $get: function (c1) {}});
+            module.provider('c1', { $get: function (a1) {}});
+            const injector = createInjector(['myModule']);
+            expect(function() {
+                injector.get('a1');
+            }).toThrowError('Circular dependency found: a1 <- c1 <- b1 <- a1');
+        });
+        it('cleans up the circular marker when instantiation fails', () => {
+            const module = window.angular.module('myModule', []);
+            module.provider('a', { $get: function() {
+                throw 'Failing instantiation!';
+            } });
+            const injector = createInjector(['myModule']);
+            expect(function() { injector.get('a'); }).toThrow('Failing instantiation!');
+            expect(function() { injector.get('a'); }).toThrow('Failing instantiation!');
         });
     });
 });

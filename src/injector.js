@@ -4,32 +4,44 @@ const _ = require('lodash');
 const FN_ARGS = /^function\s*[^\()]*\(\s*([^\)]*)\)/m;
 const FN_ARG = /^\s*(_?)(\S+?)\1\s*$/;
 const STRIP_COMMENTS = /(\/\/.*$)|\/\*.*?\*\//mg;
+const INSTANTIATING = {};
 
 function createInjector(modulesToLoad, strictDI) {
     const cache = {};
     const providerCache = {};
     const instanceCache = {};
     const loadedModules = {};
+    const path = [];
     strictDI = (strictDI === true);
     const $provide = {
         constant: function (key, value) {
             if ( key === 'hasOwnProperty' ) { throw 'hasOwnProperty is not valid constant name!'; }
-            cache[key] = value;
             instanceCache[key] = value;
         },
         provider: function (key, provider) {
-            cache[key] = invoke(provider.$get, provider);
             providerCache[`${key}Provider`] = provider;
         }
     };
 
     function getService(name) {
         if (instanceCache.hasOwnProperty(name)) {
+            if (instanceCache[name] === INSTANTIATING) {
+                throw new Error(`Circular dependency found: ${name} <- ${path.join(' <- ')}`);
+            }
             return instanceCache[name];
         } else if (providerCache.hasOwnProperty(`${name}Provider`)) {
-            const provider = providerCache[`${name}Provider`];
-            const instance = instanceCache[name] = invoke(provider.$get);
-            return instance;
+            instanceCache[name] = INSTANTIATING;
+            path.unshift(name);
+            try {
+                const provider = providerCache[`${name}Provider`];
+                const instance = instanceCache[name] = invoke(provider.$get);
+                return instance;
+            } finally {
+                path.shift();
+                if (instanceCache[name] === INSTANTIATING) {
+                    delete instanceCache[name];
+                }
+            } 
         }
     }
 
