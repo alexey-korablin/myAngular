@@ -293,5 +293,12 @@ describe('injector', function() {
             const injector = createInjector(['myModule']);
             expect(injector.get('b')).toBe(3);
         });
+        // The test does not fall in Chrome!
+        it('instantiates a dependency only once', () => {
+            const module = window.angular.module('myModule', []);
+            module.provider('a', { $get: function () { return {}; }});
+            const injector = createInjector(['myModule']);
+            expect(injector.get('a')).toBe(injector.get('a'));
+        });
     });
 });

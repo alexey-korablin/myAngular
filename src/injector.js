@@ -28,7 +28,8 @@ function createInjector(modulesToLoad, strictDI) {
             return instanceCache[name];
         } else if (providerCache.hasOwnProperty(`${name}Provider`)) {
             const provider = providerCache[`${name}Provider`];
-            return invoke(provider.$get, provider);
+            const instance = instanceCache[name] = invoke(provider.$get);
+            return instance;
         }
     }
 
