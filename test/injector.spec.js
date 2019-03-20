@@ -318,5 +318,22 @@ describe('injector', function() {
             expect(function() { injector.get('a'); }).toThrow('Failing instantiation!');
             expect(function() { injector.get('a'); }).toThrow('Failing instantiation!');
         });
+        it('instantiates a provider if given as a constructor function', () => {
+            const module = window.angular.module('myModule', []);
+            module.provider('a', function AProvider() {
+                this.$get = () => 42;
+            });
+            const injector = createInjector(['myModule']);
+            expect(injector.get('a')).toBe(42);
+        });
+        it('injects the given provider constructor function', () => {
+            const module = window.angular.module('myModule', []);
+            module.constant('b', 2);
+            module.provider('a', function AProvider(b) {
+                this.$get = () => b + 1;
+            });
+            const injector = createInjector(['myModule']);
+            expect(injector.get('a')).toBe(3);
+        });
     });
 });
