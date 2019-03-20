@@ -13,6 +13,9 @@ function createInjector(modulesToLoad, strictDI) {
         constant: function (key, value) {
             if ( key === 'hasOwnProperty' ) { throw 'hasOwnProperty is not valid constant name!'; }
             cache[key] = value;
+        },
+        provider: function (key, provider) {
+            cache[key] = provider.$get();
         }
     };
 

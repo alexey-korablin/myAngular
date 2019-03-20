@@ -265,5 +265,15 @@ describe('injector', function() {
 
             expect(instance.result).toBe(4);
         });
+        // Providers block
+        it('allows registering a providera and uses its $get', () => {
+            const module = window.angular.module('myModule', []);
+            module.provider('a', {
+                $get: function () { return 42; }
+            });
+            const injector = createInjector(['myModule']);
+            expect(injector.has('a')).toBe(true);
+            expect(injector.get('a')).toBe(42);
+        });
     });
 });
