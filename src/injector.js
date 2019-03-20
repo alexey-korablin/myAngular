@@ -7,17 +7,30 @@ const STRIP_COMMENTS = /(\/\/.*$)|\/\*.*?\*\//mg;
 
 function createInjector(modulesToLoad, strictDI) {
     const cache = {};
+    const providerCache = {};
+    const instanceCache = {};
     const loadedModules = {};
     strictDI = (strictDI === true);
     const $provide = {
         constant: function (key, value) {
             if ( key === 'hasOwnProperty' ) { throw 'hasOwnProperty is not valid constant name!'; }
             cache[key] = value;
+            instanceCache[key] = value;
         },
         provider: function (key, provider) {
             cache[key] = invoke(provider.$get, provider);
+            providerCache[`${key}Provider`] = provider;
         }
     };
+
+    function getService(name) {
+        if (instanceCache.hasOwnProperty(name)) {
+            return instanceCache[name];
+        } else if (providerCache.hasOwnProperty(`${name}Provider`)) {
+            const provider = providerCache[`${name}Provider`];
+            return invoke(provider.$get, provider);
+        }
+    }
 
     function instantiate(Type, locals) {
         const UnwrippedType = _.isArray(Type) ? _.last(Type) : Type;
@@ -47,7 +60,7 @@ function createInjector(modulesToLoad, strictDI) {
         const args = _.map(annotate(fn), (token) => {
             if (_.isString(token)) {
                 return locals && locals.hasOwnProperty(token) ?
-                locals[token] : cache[token];
+                locals[token] : getService(token);
             } else {
                 throw `Incorrect injection token! Expected a string, got ${token}`;
             }
@@ -71,8 +84,9 @@ function createInjector(modulesToLoad, strictDI) {
         }
     });
     return { 
-        has: function (key) { return cache.hasOwnProperty(key); },
-        get: function (key) { return cache[key]; },
+        has: function (key) { return instanceCache.hasOwnProperty(key) ||
+            providerCache.hasOwnProperty(`${key}Provider`); },
+        get: getService,
         invoke,
         annotate,
         instantiate

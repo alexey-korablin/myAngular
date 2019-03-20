@@ -284,5 +284,14 @@ describe('injector', function() {
             const injector = createInjector(['myModule']);
             expect(injector.get('b')).toBe(3);
         });
+        it('inject the $get method of a provider lazily', () => {
+            const module = window.angular.module('myModule', []);
+            module.provider('b', {
+                $get: function (a) { return a + 2; }
+            });
+            module.provider('a', { $get: _.constant(1) });
+            const injector = createInjector(['myModule']);
+            expect(injector.get('b')).toBe(3);
+        });
     });
 });
