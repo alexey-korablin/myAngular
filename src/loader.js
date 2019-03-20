@@ -8,16 +8,16 @@ function setupModuleLoader(window) {
     const createModule = (name, requires, modules) => {
         if  (name === 'hasOwnProperty') { throw 'hasOwnProperty is not valid module name'; }
         const invokeQueue = [];
-        const invokeLater = function (method) {
+        const invokeLater = function (method, arrayMethod) {
             return function () {
-                invokeQueue.push([method, arguments]);
+                invokeQueue[arrayMethod || 'push']([method, arguments]);
                 return moduleInstance;
             };
         };
         const moduleInstance = {
             name,
             requires,
-            constant: invokeLater('constant'),
+            constant: invokeLater('constant', 'unshift'),
             provider: invokeLater('provider'),
             _invokeQueue: invokeQueue
         };
