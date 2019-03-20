@@ -12,8 +12,8 @@ function setupModuleLoader(window) {
             return function () {
                 invokeQueue.push([method, arguments]);
                 return moduleInstance;
-            }
-        }
+            };
+        };
         const moduleInstance = {
             name,
             requires,
