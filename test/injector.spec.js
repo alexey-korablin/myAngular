@@ -349,7 +349,7 @@ describe('injector', function() {
             const injector = createInjector(['myModule']);
             expect(injector.get('a')).toBe(2);
         });
-        it('does not inject an insatnce to a provider constructor function', () => {
+        it('does not inject an instance to a provider constructor function', () => {
             const module = window.angular.module('myModule', []);
             module.provider('a', function AProvider() {
                 this.$get = () => 1; 
@@ -389,6 +389,28 @@ describe('injector', function() {
             module.constant('b', 42);
             const injector = createInjector(['myModule']);
             expect(injector.get('a')).toBe(42);
+        });
+        it('allows injecting the instance injector to $get', () => {
+            const module = window.angular.module('myModule', []);
+            module.constant('a', 42);
+            module.provider('b', function BProvider() {
+                this.$get = ($injector) => $injector.get('a'); 
+            });
+            const injector = createInjector(['myModule']);
+            expect(injector.get('b')).toBe(42);
+        });
+        it('allows injecting the provider injector to provider', () => {
+            const module = window.angular.module('myModule', []);
+            module.provider('a', function AProvider() {
+                this.value = 42;
+                this.$get = function () { return this.value; };
+            });
+            module.provider('b', function BProvider($injector) {
+                const aProvider = $injector.get('aProvider');
+                this.$get = () => aProvider.value; 
+            });
+            const injector = createInjector(['myModule']);
+            expect(injector.get('b')).toBe(42);
         });
     });
 });

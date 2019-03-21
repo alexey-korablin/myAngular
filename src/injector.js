@@ -9,11 +9,11 @@ const INSTANTIATING = {};
 function createInjector(modulesToLoad, strictDI) {
     const path = [];
     const providerCache = {};
-    const providerInjector = createInternalInjector(providerCache, function () {
+    const providerInjector = providerCache.$injector = createInternalInjector(providerCache, function () {
         throw `Unknown provider: ${path.join(' <- ')}`;
     });
     const instanceCache = {};
-    const instanceInjector = createInternalInjector(instanceCache, function (name) {
+    const instanceInjector = instanceCache.$injector = createInternalInjector(instanceCache, function (name) {
         const provider = providerInjector.get(`${name}Provider`);
         return instanceInjector.invoke(provider.$get, provider);
     });
