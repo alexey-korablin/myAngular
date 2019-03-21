@@ -412,5 +412,24 @@ describe('injector', function() {
             const injector = createInjector(['myModule']);
             expect(injector.get('b')).toBe(42);
         });
+        it('allows injecting the $provide service to providers', () => {
+            const module = window.angular.module('myModule', []);
+            module.provider('a', function AProvider($provide) {
+                $provide.constant('b', 2);
+                this.$get = (b) => 1 + b;
+            });
+            const injector = createInjector(['myModule']);
+            expect(injector.get('a')).toBe(3);
+        });
+        it('does not allow injecting the $provider service to $get', () => {
+            const module = window.angular.module('myModule', []);
+            module.provider('a', function AProvider() {
+                this.$get = ($provide) => {};
+            });
+            const injector = createInjector(['myModule']);
+            expect(function () {
+                injector.get('a');
+            }).toThrow();
+        });
     });
 });
