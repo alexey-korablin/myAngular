@@ -51,7 +51,7 @@ function createInjector(modulesToLoad, strictDI) {
                         delete cache[name];
                     }
                 } 
-            }
+            } 
         }
 
         function invoke(fn, self, locals) {
@@ -102,16 +102,23 @@ function createInjector(modulesToLoad, strictDI) {
             return _.map(argDeclaration[1].split(','), (argName) =>  argName.match(FN_ARG)[2]);
         }
     }
+
+    function runInvokeQueue(queue) {
+        _.forEach(queue, (invokeArgs) => {
+            const service = providerInjector.get(invokeArgs[0]);
+            const method = invokeArgs[1];
+            const args = invokeArgs[2];
+            service[method].apply(service, args);
+        });
+    }
+
     _.forEach(modulesToLoad, function loadModule(moduleName) {
         if (!loadedModules.hasOwnProperty(moduleName)) {
             loadedModules[moduleName] = true;
             const module = window.angular.module(moduleName);
             _.forEach(module.requires, loadModule);
-            _.forEach(module._invokeQueue, (invokeArgs) => {
-                const method = invokeArgs[0];
-                const args = invokeArgs[1];
-                providerCache.$provide[method].apply(providerCache.$provide, args);
-            });
+            runInvokeQueue(module._invokeQueue);
+            runInvokeQueue(module._configBlocks);
         }
     });
     return instanceInjector;

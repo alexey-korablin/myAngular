@@ -9,6 +9,7 @@
   "scripts": {
     "lint": "jshint src",
     "test": "karma start",
+    "debug": "karma start karma.conf.js --browsers=Chrome --single-run=false",
     "push": "git push -u origin DI"
   },
   "repository": {
