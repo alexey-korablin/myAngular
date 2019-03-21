@@ -114,17 +114,21 @@ function createInjector(modulesToLoad, strictDI) {
 
     let runBlocks = [];
 
-    _.forEach(modulesToLoad, function loadModule(moduleName) {
-        if (!loadedModules.hasOwnProperty(moduleName)) {
-            loadedModules[moduleName] = true;
-            const module = window.angular.module(moduleName);
-            _.forEach(module.requires, loadModule);
-            runInvokeQueue(module._invokeQueue);
-            runInvokeQueue(module._configBlocks);
-            runBlocks = runBlocks.concat(module._runBlocks);
+    _.forEach(modulesToLoad, function loadModule(module) {
+        if (_.isString(module)) {
+            if (!loadedModules.hasOwnProperty(module)) {
+                loadedModules[module] = true;
+                module = window.angular.module(module);
+                _.forEach(module.requires, loadModule);
+                runInvokeQueue(module._invokeQueue);
+                runInvokeQueue(module._configBlocks);
+                runBlocks = runBlocks.concat(module._runBlocks);
+            }
+        } else if (_.isFunction(module) || _.isArray(module)) {
+            runBlocks.push(providerInjector.invoke(module));
         }
     });
-    _.forEach(runBlocks, (runBlock) => {
+    _.forEach(_.compact(runBlocks), (runBlock) => {
         instanceInjector.invoke(runBlock);
     });
     return instanceInjector;

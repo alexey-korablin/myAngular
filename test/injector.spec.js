@@ -498,5 +498,40 @@ describe('injector', function() {
             createInjector(['myModule', 'myAnotherModule']);
             expect(result).toBe(3);
         });
+        it('runs a function module dependency as a config block', () => {
+            const functionModule = function($provide) {
+                $provide.constant('a', 42);
+            };
+            window.angular.module('myModule', [functionModule]);
+            const injector = createInjector(['myModule']);
+            expect(injector.get('a')).toBe(42);
+        });
+        it('runs a function module with array injection as a config block', () => {
+            const functionModule = ['$provide', function($provide) {
+                $provide.constant('a', 42);
+            }];
+            window.angular.module('myModule', [functionModule]);
+            const injector = createInjector(['myModule']);
+            expect(injector.get('a')).toBe(42);
+        });
+        it('supports returrning a run block from a function module', () => {
+            let result = null;
+            const functionModule = function ($provide) {
+                $provide.constant('a', 42);
+                return a => result = a;
+            };
+            window.angular.module('myModule', [functionModule]);
+            createInjector(['myModule']);
+            expect(result).toBe(42);
+        });
+        it('only loads function modules once', () => {
+            let loadedTimes = 0;
+            const functionModule = function () {
+                loadedTimes++;
+            };
+            window.angular.module('myModule', [functionModule, functionModule]);
+            createInjector(['myModule']);
+            expect(loadedTimes).toBe(1);
+        });
     });
 });
