@@ -1,6 +1,8 @@
 'use strict';
 
 const _ = require('lodash');
+const HashMap = require('./hash_map').HashMap;
+
 const FN_ARGS = /^function\s*[^\()]*\(\s*([^\)]*)\)/m;
 const FN_ARG = /^\s*(_?)(\S+?)\1\s*$/;
 const STRIP_COMMENTS = /(\/\/.*$)|\/\*.*?\*\//mg;
@@ -17,7 +19,7 @@ function createInjector(modulesToLoad, strictDI) {
         const provider = providerInjector.get(`${name}Provider`);
         return instanceInjector.invoke(provider.$get, provider);
     });
-    const loadedModules = {};
+    const loadedModules = new HashMap();
     strictDI = (strictDI === true);
     providerCache.$provide = {
         constant: function (key, value) {
@@ -115,18 +117,18 @@ function createInjector(modulesToLoad, strictDI) {
     let runBlocks = [];
 
     _.forEach(modulesToLoad, function loadModule(module) {
-        if (_.isString(module)) {
-            if (!loadedModules.hasOwnProperty(module)) {
-                loadedModules[module] = true;
+        if (!loadedModules.get(module)) {
+            loadedModules.put(module, true);
+            if (_.isString(module)) {
                 module = window.angular.module(module);
                 _.forEach(module.requires, loadModule);
                 runInvokeQueue(module._invokeQueue);
                 runInvokeQueue(module._configBlocks);
                 runBlocks = runBlocks.concat(module._runBlocks);
+            } else if (_.isFunction(module) || _.isArray(module)) {
+                runBlocks.push(providerInjector.invoke(module));
             }
-        } else if (_.isFunction(module) || _.isArray(module)) {
-            runBlocks.push(providerInjector.invoke(module));
-        }
+        } 
     });
     _.forEach(_.compact(runBlocks), (runBlock) => {
         instanceInjector.invoke(runBlock);
