@@ -1,6 +1,8 @@
 'use strict';
 
 const hashKey = require('../src/hash_map').hashKey;
+const HashMap = require('../src/hash_map').HashMap;
+const _ = require('lodash');
 
 describe('hash', function () {
     describe('hashKey', () => {
@@ -50,6 +52,57 @@ describe('hash', function () {
         it('is the same key when asked for the same function many times', () => {
             const fn = () => {};
             expect(hashKey(fn)).toEqual(hashKey(fn));
+        });
+        it('is not the same for different identical function', () => {
+            const fn1 = () => 42;
+            const fn2 = () => 42;
+            expect(hashKey(fn1)).not.toEqual(hashKey(fn2));
+        });
+        it('stores the hash key in the $$hashKey attribute', () => {
+            const obj = { a: 42 };
+            const hash = hashKey(obj);
+            expect(obj.$$hashKey).toEqual(hash.match(/^object:(\S+)$/)[1]);
+        });
+        it('uses preassigned $$hashKey', () => {
+            expect(hashKey({ $$hashKey: 42 })).toEqual('object:42');
+        });
+        it('supports a function $$hashKey', () => {
+            expect(hashKey({ $$hashKey: _.constant(42) })).toEqual('object:42');
+        });
+        it('calls the function $$hashKey as a method with the correct this', () => {
+            expect(hashKey({
+                myKey: 42,
+                $$hashKey: function () {
+                    return this.myKey;
+                }
+            })).toEqual('object:42');
+        });
+    });
+
+    describe('HashMap', () => {
+        
+        it('supports put and get primitives', () => {
+            const map = new HashMap();
+            map.put(42, 'fourty two');
+            expect(map.get(42)).toEqual('fourty two');
+        });
+        it('supports put and get of objects with hashKey semantics', () => {
+            const map = new HashMap();
+            const obj = {};
+            map.put(obj, 'my value');
+            expect(map.get(obj)).toEqual('my value');
+            expect(map.get({})).toBeUndefined();
+        });
+        it('supports remove', () => {
+            const map = new HashMap();
+            map.put(42, 'fourty two');
+            map.remove(42);
+            expect(map.get(42)).toBeUndefined();
+        });
+        it('returns value from remove', () => {
+            const map = new HashMap();
+            map.put(42, 'fourty two');
+            expect(map.remove(42)).toEqual('fourty two');
         });
     });
 });
