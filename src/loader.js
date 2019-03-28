@@ -21,6 +21,7 @@ function setupModuleLoader(window) {
             requires,
             constant: invokeLater('$provide', 'constant', 'unshift'),
             provider: invokeLater('$provide', 'provider'),
+            factory: invokeLater('$provide', 'factory'),
             config: invokeLater('$injector', 'invoke', 'push', configBlocks),
             run: function (fn) {
                 moduleInstance._runBlocks.push(fn);

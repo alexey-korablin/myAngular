@@ -21,6 +21,15 @@ function createInjector(modulesToLoad, strictDI) {
     });
     const loadedModules = new HashMap();
     strictDI = (strictDI === true);
+    function enforceReturnValue(factoryFn) {
+        return function () {
+            const value = instanceInjector.invoke(factoryFn);
+            if (_.isUndefined(value)) {
+                throw 'factory must return a value';
+            }
+            return value;
+        }
+    }
     providerCache.$provide = {
         constant: function (key, value) {
             if ( key === 'hasOwnProperty' ) { throw 'hasOwnProperty is not valid constant name!'; }
@@ -32,6 +41,9 @@ function createInjector(modulesToLoad, strictDI) {
                 provider = providerInjector.instantiate(provider); 
             }
             providerCache[`${key}Provider`] = provider;
+        },
+        factory: function (key, factoryFn) {
+            this.provider(key, {$get: enforceReturnValue(factoryFn)});
         }
     };
 
