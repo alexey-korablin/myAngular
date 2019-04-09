@@ -87,7 +87,10 @@ class Lexer {
             }
             this.index++;
         }
-        const token = { text: text };
+        const token = { 
+            text: text,
+            identifier: true
+        };
         this.tokens.push(token);
     }
 
@@ -225,9 +228,13 @@ class AST {
         if (!this.peek('}')) {
             do {
                 const property = { type: AST.Property };
-                property.key = this.constant();
+                if (this.peek().identifier) {
+                    property.key = this.identifier()
+                } else {
+                    property.key = this.constant();
+                }
                 this.consume(':');
-                property.value = this.primary;
+                property.value = this.primary();
                 properties.push(property);
             } while (this.expect(','));
         }
@@ -237,6 +244,10 @@ class AST {
 
     constant() {
         return { type: AST.Literal, value: this.consume().value };
+    }
+
+    identifier() {
+        return { type: AST.Identifier, name: this.consume().text}
     }
 
     static get Program() {
@@ -257,6 +268,10 @@ class AST {
 
     static get Property() {
         return 'Property';
+    }
+
+    static get Identifier() {
+        return 'Identifier';
     }
 
     get constants() {
@@ -315,9 +330,14 @@ class ASTCompiller {
             case AST.ObjectExpression:
                     const properties = _.map(
                         ast.properties,
-                        (property => this.recurse(property)),
-                        this
-                    );
+                        (property => {
+                            const key = property.key.type === AST.Identifier
+                                ? property.key.name
+                                : this.escape(property.key.value);
+                            const value = this.recurse(property.value);
+                            return `${key}:${value}`;
+                        }),
+                        this);
                     return `{${properties.join(',')}}`;
         }
     }
