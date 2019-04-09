@@ -28,7 +28,7 @@ function createInjector(modulesToLoad, strictDI) {
                 throw 'factory must return a value';
             }
             return value;
-        }
+        };
     }
     providerCache.$provide = {
         constant: function (key, value) {
@@ -53,6 +53,15 @@ function createInjector(modulesToLoad, strictDI) {
             this.factory(key, function () {
                 return instanceInjector.instantiate(Constructor);
             });
+        },
+        decorator: function (serviceName, decoratorFn) {
+            const provider = providerInjector.get(`${serviceName}Provider`);
+            const original$get = provider.$get;
+            provider.$get = function () {
+                const instance = instanceInjector.invoke(original$get, provider);
+                instanceInjector.invoke(decoratorFn, null, { $delegate: instance });
+                return instance;
+            }
         }
     };
 
