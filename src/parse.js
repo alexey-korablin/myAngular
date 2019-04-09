@@ -229,7 +229,7 @@ class AST {
             do {
                 const property = { type: AST.Property };
                 if (this.peek().identifier) {
-                    property.key = this.identifier()
+                    property.key = this.identifier();
                 } else {
                     property.key = this.constant();
                 }
@@ -240,6 +240,10 @@ class AST {
         }
         this.consume('}');
         return { type: AST.ObjectExpression, properties };
+    }
+
+    identifier() {
+        return { type: AST.Identifier, name: this.consume().text };
     }
 
     constant() {
