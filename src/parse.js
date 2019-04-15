@@ -183,6 +183,8 @@ class AST {
             return this.object();
         } else if (this.constants.hasOwnProperty(this.tokens[0].text)) {
             return this.constants[this.consume().text];
+        } else if (this.peek().identifier) {
+            return this.identifier();
         } else {
             return this.constant();
         }
@@ -250,10 +252,6 @@ class AST {
         return { type: AST.Literal, value: this.consume().value };
     }
 
-    identifier() {
-        return { type: AST.Identifier, name: this.consume().text}
-    }
-
     static get Program() {
         return 'Program';
     }
@@ -309,9 +307,10 @@ class ASTCompiller {
 
     compile(text) {
         const ast = this.astBuilder.ast(text);
-        this.state = { body: [] };
+        this.state = { body: [], nextId: 0, vars: [] };
         this.recurse(ast);
-        return new Function(this.state.body.join(' '));
+        return new Function('s', (this.state.vars.length ?
+            `let ${this.state.vars.join(',')};`: ' ') + this.state.body.join(' '));
     }
 
     recurse(ast) {
@@ -332,18 +331,40 @@ class ASTCompiller {
                 return `[${elements.join(',')}]`;
             
             case AST.ObjectExpression:
-                    const properties = _.map(
-                        ast.properties,
-                        (property => {
-                            const key = property.key.type === AST.Identifier
-                                ? property.key.name
-                                : this.escape(property.key.value);
-                            const value = this.recurse(property.value);
-                            return `${key}:${value}`;
-                        }),
-                        this);
-                    return `{${properties.join(',')}}`;
+                const properties = _.map(
+                    ast.properties,
+                    (property => {
+                        const key = property.key.type === AST.Identifier ?
+                            property.key.name
+                            : this.escape(property.key.value);
+                        const value = this.recurse(property.value);
+                        return `${key}:${value}`;
+                    }),
+                    this);
+                return `{${properties.join(',')}}`;
+            case AST.Identifier:
+                const intoId = this.nextId();
+                this.if_('s', this.assign(intoId, this.nonComputedMember('s', ast.name)));
+                return intoId;
         }
+    }
+
+    nonComputedMember(left, right) {
+        return `(${left}).${right}`;
+    }
+
+    if_(test, consequent) {
+        this.state.body.push('if(', test, '){', consequent, '}');
+    }
+
+    assign(id, value) {
+        return `${id}=${value}`;
+    }
+
+    nextId() {
+        const id = 'v' + (this.state.nextId++);
+        this.state.vars.push(id);
+        return id;
     }
 }
 
