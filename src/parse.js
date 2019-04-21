@@ -276,11 +276,16 @@ class AST {
         return 'Identifier';
     }
 
+    static get ThisExpression() {
+        return 'ThisExpression';
+    }
+
     get constants() {
         return {
             'null': { type: AST.Literal, value: null },
             'true': { type: AST.Literal, value: true },
-            'false': { type: AST.Literal, value: false }
+            'false': { type: AST.Literal, value: false },
+            'this': { type: AST.ThisExpression }
         };
     }
 }
@@ -346,6 +351,8 @@ class ASTCompiller {
                 const intoId = this.nextId();
                 this.if_('s', this.assign(intoId, this.nonComputedMember('s', ast.name)));
                 return intoId;
+            case AST.ThisExpression:
+                    return 's';
         }
     }
 
