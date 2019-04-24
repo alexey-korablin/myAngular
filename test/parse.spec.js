@@ -140,4 +140,24 @@ describe('parse #', function() {
         expect(fn(scope)).toBe(scope);
         expect(fn()).toBeUndefined();
     });
+
+    it('looks up 2-part identifier path from the scope', () => {
+        const fn = parse('aKey.anotherKey');
+        expect(fn({ aKey: { anotherKey: 42 } })).toBe(42);
+        expect(fn({ aKey: {} })).toBeUndefined();
+        expect(fn({})).toBeUndefined();
+    });
+
+    it('looks up a nenber from an object', () => {
+        const fn = parse('{ aKey: 42 }.aKey');
+        expect(fn()).toBe(42);
+    });
+
+    it('looks up 4-part identifier path from the scope', () => {
+        const fn = parse('aKey.secondKey.thirdKey.fourthKey');
+        expect(fn({ aKey: { secondKey: { thirdKey: { fourthKey: 42 } } } })).toBe(42);
+        expect(fn({ aKey: { secondKey: { thirdKey: {} } } })).toBeUndefined();
+        expect(fn({ aKey: {} })).toBeUndefined();
+        expect(fn()).toBeUndefined();
+    });
 });
