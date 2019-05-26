@@ -327,7 +327,7 @@ class ASTCompiller {
         const ast = this.astBuilder.ast(text);
         this.state = { body: [], nextId: 0, vars: [] };
         this.recurse(ast);
-        return new Function('s', (this.state.vars.length ?
+        return new Function('s', 'l', (this.state.vars.length ?
             `let ${this.state.vars.join(',')};`: ' ') + this.state.body.join(' '));
     }
 
@@ -363,7 +363,8 @@ class ASTCompiller {
                 return `{${properties.join(',')}}`;
             case AST.Identifier:
                 intoId = this.nextId();
-                this.if_('s', this.assign(intoId, this.nonComputedMember('s', ast.name)));
+                this.if_(this.getHasOwnProperty('l', ast.name), this.assign(intoId, this.nonComputedMember('l', ast.name)));
+                this.if_(this.not(this.getHasOwnProperty('l', ast.name)) + '&& s', this.assign(intoId, this.nonComputedMember('s', ast.name)));
                 return intoId;
             case AST.ThisExpression:
                 return 's';
@@ -393,6 +394,14 @@ class ASTCompiller {
         const id = 'v' + (this.state.nextId++);
         this.state.vars.push(id);
         return id;
+    }
+
+    not(e) {
+        return `!(${e})`;
+    }
+
+    getHasOwnProperty(object, property) {
+        return `${object}&&(${this.escape(property)}) in ${object}`;
     }
 }
 
