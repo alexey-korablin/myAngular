@@ -178,6 +178,7 @@ class AST {
 
     primary() {
         let primary = null;
+        let next = null;
         if (this.expect('[')) {
             primary = this.arrayDeclaration();
         } else if (this.expect('{')) {
@@ -189,18 +190,29 @@ class AST {
         } else {
             primary = this.constant();
         }
-        while (this.expect('.')) {
-            primary = {
-                type: AST.MemberExpression,
-                object: primary,
-                property: this.identifier()
-            };
+        while ((next = this.expect('.', '['))) {
+            if (next.text === '[') {
+                primary = {
+                    type: AST.MemberExpression,
+                    object: primary,
+                    property: this.primary(),
+                    computed: true
+                };
+                this.consume(']');
+            } else {
+                primary = {
+                    type: AST.MemberExpression,
+                    object: primary,
+                    property: this.identifier(),
+                    computed: false
+                };
+            }            
         }
         return primary;
     }
 
-    expect(e) {
-        const token = this.peek(e);
+    expect(e1, e2, e3, e4) {
+        const token = this.peek(e1, e2, e3, e4);
         if (token) {
             return this.tokens.shift();
         }
@@ -217,10 +229,11 @@ class AST {
         return { type: AST.ArrayExpression, elements };
     }
 
-    peek(e) {
+    peek(e1, e2, e3, e4) {
         if (this.tokens.length > 0) {
             const text = this.tokens[0].text;
-            if (text === e || !e) {
+            if (text === e1 || text === e2 || text === e3 || text === e4 ||
+                (!e1 && !e2 && !e3 && !e4)) {
                 return this.tokens[0];
             }
         }
@@ -371,11 +384,20 @@ class ASTCompiller {
             case AST.MemberExpression:
                 intoId = this.nextId();
                 const left = this.recurse(ast.object);
-                this.if_(left, 
-                    this.assign(intoId, 
-                        this.nonComputedMember(left, ast.property.name)));
+                if (ast.computed) {
+                    const right = this.recurse(ast.property);
+                    this.if_(left, this.assign(intoId, this.computedMember(left, right)));
+                } else {
+                    this.if_(left, 
+                        this.assign(intoId, 
+                            this.nonComputedMember(left, ast.property.name)));
+                }
                 return intoId;
         }
+    }
+
+    computedMember(left, right) {
+        return `(${left})[${right}]`;
     }
 
     nonComputedMember(left, right) {
