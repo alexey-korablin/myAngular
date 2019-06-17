@@ -31,7 +31,7 @@ class Lexer {
                 this.readNumber();
             } else if (this.is('\'"')) {
                 this.readString(this.ch);
-            }  else if (this.is('[],{}:.')) {
+            }  else if (this.is('[],{}:.()')) {
                 this.tokens.push({
                     text: this.ch
                 });
@@ -190,7 +190,7 @@ class AST {
         } else {
             primary = this.constant();
         }
-        while ((next = this.expect('.', '['))) {
+        while ((next = this.expect('.', '[', '('))) {
             if (next.text === '[') {
                 primary = {
                     type: AST.MemberExpression,
@@ -199,16 +199,33 @@ class AST {
                     computed: true
                 };
                 this.consume(']');
-            } else {
+            } else if (next.text === '.') {
                 primary = {
                     type: AST.MemberExpression,
                     object: primary,
                     property: this.identifier(),
                     computed: false
                 };
-            }            
+            } else if (next.text === '(') {
+                primary = { 
+                    type: AST.CallExpression,
+                    callee: primary,
+                    arguments: this.parseArguments()
+                };
+                this.consume(')');
+            }
         }
         return primary;
+    }
+
+    parseArguments() {
+        const args = [];
+        if (!this.peek(')')) {
+            do {
+                args.push(this.primary());
+            } while (this.expect(','));
+        }
+        return args;
     }
 
     expect(e1, e2, e3, e4) {
@@ -306,6 +323,10 @@ class AST {
         return 'MemberExpression';
     }
 
+    static get CallExpression() {
+        return 'CallExpression';
+    }
+
     get constants() {
         return {
             'null': { type: AST.Literal, value: null },
@@ -393,6 +414,11 @@ class ASTCompiller {
                             this.nonComputedMember(left, ast.property.name)));
                 }
                 return intoId;
+            case AST.CallExpression:
+                const callee = this.recurse(ast.callee);
+                const args = _.map(ast.arguments, arg => this.recurse(arg), this);
+                return `${callee} && ${callee}(${args.join(',')})`;
+                // return callee + '&&' + callee + '()';
         }
     }
 

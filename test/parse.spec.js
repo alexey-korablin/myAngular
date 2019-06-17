@@ -1,6 +1,7 @@
 'use strict';
 
 const parse = require('../src/parse');
+const _ = require('lodash');
 
 describe('parse #', function() {
 
@@ -200,5 +201,37 @@ describe('parse #', function() {
     it('parses computed access with another access as property', () => {
         const  fn = parse('lock[keys["aKey"]]');
         expect(fn({ keys: { aKey: 'theKey' }, lock: { theKey: 42 } })).toBe(42);
+    });
+
+    it('parses a function call', () => {
+        const fn = parse('aFunction()');
+        expect(fn({ aFunction: () => 42 })).toBe(42);
+    });
+
+    it('parses a function call with a single number argument', () => {
+        const fn = parse('aFunction(42)');
+        expect(fn({ aFunction: (n) => n })).toBe(42);
+    });
+
+    it('parses a function call with a single identifier argument', () => {
+        const fn = parse('aFunction(n)');
+        expect(fn({ n: 42, aFunction: (arg) => arg })).toBe(42);
+    });
+
+    it('parses a function call with a single function call argument', () => {
+        const fn = parse('aFunction(argFn())');
+        expect(fn({
+            argFn: _.constant(42),
+            aFunction: arg => arg
+        })).toBe(42);
+    });
+
+    it('parses a function call with multiple arguments', () => {
+        const fn = parse('aFunction(37, n, argFn())');
+        expect(fn({
+            n: 3,
+            argFn: _.constant(2),
+            aFunction: (a1, a2, a3) => a1 + a2 + a3
+        })).toBe(42);
     });
 });
