@@ -4,6 +4,7 @@
     "devel": true,
     "esnext": true,
     "strict": "global",
+    "evil": true,
     "globals": {
         "jasmine": false,
         "describe": false,

@@ -9,7 +9,8 @@
   "scripts": {
     "lint": "jshint src",
     "test": "karma start",
-    "push": "git push -u origin master"
+    "push": "git push -u origin master",
+    "p-eaf": "git push -u origin expressions_and_filters"
   },
   "repository": {
     "type": "git",
